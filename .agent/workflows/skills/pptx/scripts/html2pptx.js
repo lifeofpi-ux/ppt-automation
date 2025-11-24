@@ -196,7 +196,7 @@ async function extractSlideData(page) {
     };
 
     // Parse inline formatting tags
-    const parseInlineFormatting = (element, baseOptions = {}, runs = [], baseTextTransform = (x) => x) => {
+    const parseInlineFormatting = (element, baseOptions = { paraSpaceBefore: 0, paraSpaceAfter: 0 }, runs = [], baseTextTransform = (x) => x) => {
       let prevNodeIsText = false;
 
       element.childNodes.forEach((node) => {
@@ -204,31 +204,35 @@ async function extractSlideData(page) {
 
         const isText = node.nodeType === Node.TEXT_NODE || node.tagName === 'BR';
         if (isText) {
-          let text;
           if (node.tagName === 'BR') {
-            text = '\n';
+            // Use PptxGenJS break option instead of \n to avoid paragraph spacing
             // Remove trailing space from the last run if it exists
             if (runs.length > 0) {
               const lastRun = runs[runs.length - 1];
               lastRun.text = lastRun.text.replace(/\s+$/, '');
             }
+            // Add a break run
+            runs.push({
+              text: '',
+              options: { break: true }
+            });
           } else {
             // Normalize all whitespace (tabs, multiple spaces, newlines) to single space
-            text = textTransform(node.textContent.replace(/[\s\t\n\r]+/g, ' '));
-            // If the last run ended with a newline, remove leading space from this text
+            let text = textTransform(node.textContent.replace(/[\s\t\n\r]+/g, ' '));
+            // If the last run was a break, remove leading space from this text
             if (runs.length > 0) {
               const lastRun = runs[runs.length - 1];
-              if (lastRun.text.endsWith('\n')) {
+              if (lastRun.options && lastRun.options.break) {
                 text = text.replace(/^\s+/, '');
               }
             }
-          }
 
-          const prevRun = runs[runs.length - 1];
-          if (prevNodeIsText && prevRun) {
-            prevRun.text += text;
-          } else {
-            runs.push({ text, options: { ...baseOptions } });
+            const prevRun = runs[runs.length - 1];
+            if (prevNodeIsText && prevRun && !prevRun.options.break) {
+              prevRun.text += text;
+            } else {
+              runs.push({ text, options: { ...baseOptions } });
+            }
           }
 
         } else if (node.nodeType === Node.ELEMENT_NODE && node.textContent.trim()) {
