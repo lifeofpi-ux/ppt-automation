@@ -476,22 +476,34 @@ async function html2pptx(htmlFile, pres, options = {}) {
         height: Math.round(bodyDimensions.height)
       });
 
-      // 2. Capture Background (Hybrid Rendering)
-      // Hide all text elements to capture only background, images, and decorations
-      await page.evaluate(() => {
+      // 2. Capture Background (Hybrid Rendering) at 2x resolution
+      // We use a separate high-res page for the screenshot to get true 2x pixel density
+      const highResPage = await browser.newPage({
+        deviceScaleFactor: 2
+      });
+
+      await highResPage.goto(`file://${filePath}`);
+      await highResPage.setViewportSize({
+        width: Math.round(bodyDimensions.width),
+        height: Math.round(bodyDimensions.height)
+      });
+
+      // Hide text elements on the high-res page
+      await highResPage.evaluate(() => {
         const textTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A'];
         const elements = document.querySelectorAll(textTags.join(','));
         elements.forEach(el => {
-          // Store original opacity to restore later if needed (though we close page)
-          el.dataset.originalOpacity = el.style.opacity;
           el.style.opacity = '0';
         });
       });
 
-      // Screenshot as PNG
+      // Screenshot as PNG at 2x resolution (actual pixel dimensions will be 2x)
       const filename = `bg_${path.basename(htmlFile, '.html')}_${Date.now()}.png`;
       backgroundPath = path.join(tmpDir, filename);
-      await page.screenshot({ path: backgroundPath, fullPage: true });
+      await highResPage.screenshot({ path: backgroundPath, fullPage: false });
+
+      // Close high-res page
+      await highResPage.close();
 
       // 3. Extract Text Data
       // Restore opacity to extract correct styles/visibility (actually reload is safer/cleaner)

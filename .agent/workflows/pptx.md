@@ -90,6 +90,15 @@ workspace/
     *   Use **Asymmetric Layouts**: 1/3 text + 2/3 image, or vice versa.
     *   **Bento Grid**: Organize content in modular, card-based grids.
 
+4.  **Micro-Details & Badges**:
+    *   **Faithful Reproduction**: Small UI elements like badges, tags, pills, and status indicators add significant polish. Ensure these are faithfully implemented in HTML/CSS with precise padding, border-radius, and font sizes.
+    *   **Visual Interest**: These small objects break up text density and add a layer of "designed" feel.
+
+5.  **Key Color Strategy**:
+    *   **Define Early**: Set a primary "Key Color" (Brand Color) at the start of the design process.
+    *   **Consistent Application**: Use this color for primary actions, active states, key data points, and badges.
+    *   **Harmony**: Ensure the key color contrasts well with the background and is used sparingly (10-20% of the slide) to maintain impact.
+
 4.  **Art Direction with Generated Assets**:
     *   **Do NOT rely on CSS gradients** (they fail in conversion).
     *   **Do NOT use generic stock photos**.
@@ -217,7 +226,7 @@ p {
 1. **MANDATORY - READ ENTIRE FILE**: Read [`html2pptx.md`](skills/pptx/docs/html2pptx.md) completely from start to finish. **NEVER set any range limits when reading this file.** Read the full file content for detailed syntax, critical formatting rules, and best practices before proceeding with presentation creation.
 
 2. **Art Direction & Asset Generation (Crucial Step)**:
-   - **Define the Vibe**: Decide on the color palette and visual style based on the presentation's content and purpose:
+   - **Define the Vibe & Key Color**: Decide on the color palette and visual style based on the presentation's content and purpose. **Explicitly define a Key Color** to be used throughout.
      - **Corporate/Business**: Clean, professional, data-driven (Blues, Grays, White space)
      - **Creative/Storytelling**: Emotional, artistic, narrative-driven (Warm tones, Illustrations, Textures)
      - **Tech/Innovation**: Modern, futuristic, dynamic (Neon accents, Dark backgrounds, Geometric shapes)
@@ -267,6 +276,11 @@ p {
 3. Create an HTML file for each slide in `workspace/[project_name]/assets/slides/`
    - **Global Reset**: Include `* { box-sizing: border-box; }` in your CSS.
    - **Reference Assets**: Use relative paths to your generated images (e.g., `background-image: url('../images/aurora_bg.png')`).
+   - **Consistent Padding**: Ensure all slides have a consistent internal padding (e.g., `padding: 40px` or `5%`) on the main container to prevent content from touching the edges.
+   - **Dimension Check (Anti-Overflow)**:
+     - The target PPTX slide size is typically **10 inches x 5.625 inches** (16:9).
+     - **Check Height**: Before finalizing, verify that the calculated height of your HTML content does not exceed the slide height.
+     - **Adjust**: If content risks overflowing, reduce font sizes, adjust line-heights, or simplify content *in the HTML phase* to avoid "overfit" errors during conversion.
    - Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content
    - Use `class="placeholder"` for areas where charts/tables will be added (render with gray background for visibility)
    - **CRITICAL**: Rasterize icons as PNG images FIRST using Sharp, then reference in HTML
