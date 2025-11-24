@@ -298,7 +298,10 @@ p {
      - The target PPTX slide size is typically **10 inches x 5.625 inches** (16:9).
      - **Check Height**: Before finalizing, verify that the calculated height of your HTML content does not exceed the slide height.
      - **Adjust**: If content risks overflowing, reduce font sizes, adjust line-heights, or simplify content *in the HTML phase* to avoid "overfit" errors during conversion.
-   - Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content
+   - **CRITICAL**: Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content.
+     - Text inside `<span>` or `<div>` tags WITHOUT a parent text tag (like `<p>`) will NOT be converted to PowerPoint text.
+     - ✅ Correct: `<p><span>Text</span></p>`
+     - ❌ Incorrect: `<span>Text</span>` or `<div>Text</div>`
    - Use `class="placeholder"` for areas where charts/tables will be added (render with gray background for visibility)
    - **CRITICAL**: Rasterize icons as PNG images FIRST using Sharp, then reference in HTML
    - **LAYOUT**: Use CSS Grid (`display: grid`) for Bento Box layouts or Flexbox for alignment.
