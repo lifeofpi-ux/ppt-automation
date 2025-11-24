@@ -75,40 +75,56 @@ workspace/
     *   **Rule**: If in doubt, remove it. If it's not essential, delete it.
 
 2.  **Typography-Driven Design**:
-    *   **Font Selection**: Use **Pretendard** as the default for a clean, modern look. However, choose appropriate **Google Fonts (Korean)** based on the presentation's tone:
-        *   **Corporate/Tech**: Noto Sans KR, IBM Plex Sans KR
-        *   **Emotional/Traditional**: Noto Serif KR, Nanum Myeongjo, Gowun Batang
-        *   **Friendly/Soft**: Gowun Dodum, Nanum Gothic
-        *   *Instruction*: Always include the Google Fonts `<link>` or `@import` in your HTML to ensure proper rendering during conversion.
+    *   **Font Selection (Korean)**:
+        *   **Standard / Modern**: **Pretendard** (or `Noto Sans KR`). Best for business, tech, and general use. Clean and legible.
+        *   **Emotional / Storytelling**: **Noto Serif KR** (Elegant) or **Gowun Batang** (Lyrical). Best for quotes, literature, or luxury brands.
+        *   **Friendly / Soft**: **Gowun Dodum** or **Nanum Gothic**.
+        *   *Instruction*: Always include the Google Fonts `<link>` or `@import` in your HTML to ensure proper rendering.
     *   **Contrast**: Pair a heavy weight (Bold/ExtraBold) header with a light/regular body.
     *   **Tight Headings**: Use `letter-spacing: -0.02em` or `-0.03em` for large headings to make them look tighter and more professional.
     *   **Relaxed Body**: Use `line-height: 1.6` for body text to improve readability and elegance.
-    *   **Font Weight**: Explicitly use `font-weight: 700` (or `bold`) in your CSS for headers to ensure they are rendered as **Bold** in PowerPoint. The conversion script maps `font-weight >= 700` to the PPTX bold property.
+    *   **Font Weight**: Explicitly use `font-weight: 700` (or `bold`) in your CSS for headers to ensure they are rendered as **Bold** in PowerPoint.
 
 3.  **Visual Hierarchy & Asymmetry**:
     *   Avoid boring center-aligned text for everything.
     *   Use **Asymmetric Layouts**: 1/3 text + 2/3 image, or vice versa.
-    *   **Bento Grid**: Organize content in modular, card-based grids (like Apple's promotional materials).
+    *   **Bento Grid**: Organize content in modular, card-based grids.
 
 4.  **Art Direction with Generated Assets**:
     *   **Do NOT rely on CSS gradients** (they fail in conversion).
     *   **Do NOT use generic stock photos**.
-    *   **STRATEGY**: Use `generate_image` to create bespoke backgrounds, textures, and illustrations that perfectly match your color palette.
+    *   **STRATEGY**: Use `generate_image` to create bespoke backgrounds, textures, and illustrations.
+
+#### Hybrid Rendering & Styling Mechanism
+The `html2pptx` workflow uses a **Hybrid Rendering** approach to ensure 100% visual fidelity:
+1.  **Background Capture**: The script hides all text elements and captures the entire slide (background images, CSS decorations, shapes) as a single high-resolution PNG image. This becomes the slide background.
+2.  **Text Overlay**: It then extracts text elements (p, h1-h6, li) and overlays them as editable PowerPoint text boxes on top of the background image.
+
+**Implications for Styling**:
+*   **Complex CSS (Blur, Gradients, Shadows)**: Apply these to background containers (divs). They will be baked into the background image and look perfect.
+*   **Text Containers**: Text containers themselves should generally be transparent. Do NOT apply borders or backgrounds to the specific `<p>` or `<h1>` tags if you want them editable, as the background capture handles the visual container.
+*   **No Borders**: Do NOT use borders on tables or content divs unless explicitly required for a specific chart style. The default should be borderless for a clean look.
 
 #### Modern Design Aesthetics & CSS Snippets
 
-**1. Glassmorphism (The Right Way)**
-Since CSS gradients fail, use a **solid color background** or a **generated image background**, then apply glass effects to containers.
+**1. Sophisticated Minimalist Aesthetic**
+Achieve a premium look through **subtle textures**, **perfect typography**, and **generous whitespace**. Avoid harsh contrasts; use soft, harmonious color palettes.
 
 ```css
-/* Container */
-.glass-card {
-  background: rgba(255, 255, 255, 0.6); /* Higher opacity for better visibility */
-  backdrop-filter: blur(20px);          /* Strong blur */
-  -webkit-backdrop-filter: blur(20px);  /* Safari support */
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Soft, diffuse shadow */
-  border-radius: 24pt;                  /* Large, modern radius */
+/* Sophisticated Theme Variables */
+:root {
+  --bg-color: #F5F5F7;      /* Soft Off-White / Light Gray */
+  --text-primary: #1D1D1F;  /* Soft Black (Apple Style) */
+  --text-secondary: #86868B;
+  --accent-color: #0066CC;  /* Refined Blue */
+}
+
+/* Clean, Borderless Containers */
+.content-card {
+  background: transparent;
+  border: none;            /* NO BORDERS */
+  padding: 0;
+  box-shadow: none;
 }
 ```
 
@@ -118,37 +134,37 @@ Use CSS Grid to create sophisticated, dashboard-style layouts.
 ```css
 .bento-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* or 1.5fr 1fr */
-  gap: 20pt;
+  grid-template-columns: 1fr 1fr;
+  gap: 24pt;
   height: 100%;
 }
 .bento-item {
-  background: #FFFFFF;
+  /* Very subtle background for structure without visual weight */
+  background: rgba(255, 255, 255, 0.5); 
   border-radius: 20pt;
-  padding: 25pt;
+  padding: 30pt;
   display: flex;
   flex-direction: column;
-  /* Optional: Add subtle shadow */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  border: none;
 }
 ```
 
 **3. Sophisticated Typography**
 ```css
 h1 {
-  font-family: 'Pretendard', sans-serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   font-weight: 800;
-  font-size: 36pt;
-  letter-spacing: -0.03em; /* Tighter tracking for display text */
-  color: #111111;
-  margin-bottom: 16pt;
+  font-size: 40pt;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 20pt;
 }
 p {
-  font-family: 'Pretendard', sans-serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   font-weight: 400;
-  font-size: 14pt;
-  line-height: 1.6; /* Relaxed reading experience */
-  color: #444444;   /* Soften black to dark gray */
+  font-size: 16pt;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 ```
 
@@ -160,9 +176,13 @@ p {
 - **Overlap**: Allow an image to slightly overlap a text box (using negative margins or absolute positioning - *test carefully*).
 
 **Background Treatments**:
-- **Soft Gradients (Image-based)**: Generate soft, mesh gradients (Aurora style) using Nanobanana and set as `body` background image.
+- **Darkening Overlay**: When using image backgrounds, ALWAYS apply a dark gradient overlay to ensure text readability.
+  ```css
+  .slide-container {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../images/bg.png');
+  }
+  ```
 - **Abstract Shapes**: Use large, soft blobs or geometric shapes in the background (generated image) to guide the eye.
-- **Noise/Texture**: Add a very subtle grain texture to solid backgrounds for a premium feel (via generated image).
 
 **Icon & Data Visualization**:
 - **Minimalist Icons**: Use `react-icons` (Feather or Heroicons) converted to PNG. Keep them small and framed in a circle.
@@ -171,15 +191,8 @@ p {
 
 **Image Styling Guidelines**:
 - **Rounded Corners**: Apply `border-radius: 12px` (approx. 9pt) to images for a modern, friendly look.
-- **Borders**: Add a subtle border to images to make them pop, especially on glass backgrounds.
-  - Example: `border: 1px solid rgba(255, 255, 255, 0.4);`
-- **Shadows**: Use `box-shadow` to add depth. Example: `box-shadow: 0 8px 24px rgba(0,0,0,0.12);`.
-- **Text Overlap**: When placing text over an image, ensure readability by adjusting the image's opacity (e.g., `opacity: 0.6`) or brightness (e.g., `filter: brightness(0.4)`), or add a semi-transparent overlay div between the image and text.
-
-**Glassmorphism Implementation**:
-- **Layering**: Background Image -> Glass Container (`backdrop-filter: blur`) -> Content.
-- **Borders**: Glass containers MUST have a thin, semi-transparent white border (`1px solid rgba(255,255,255,0.3)`) to define edges.
-- **Shadows**: Soft, diffuse shadows are essential for lifting the glass layer (`box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15)`).
+- **No Borders**: Do NOT add borders to images. Let them blend or stand out via shadow/contrast.
+- **Shadows**: Use `box-shadow` to add depth. Example: `box-shadow: 0 8px 24px rgba(0,0,0,0.2);`.
 
 #### Color Palette Selection (Sophisticated)
 
