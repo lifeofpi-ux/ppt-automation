@@ -1,0 +1,18 @@
+# Ignore everything by default
+*
+
+# Unignore the .agent directory and its contents
+!/.agent/
+!/.agent/**
+
+# Unignore essential project files
+!/package.json
+!/package-lock.json
+!/README.md
+!/.gitignore
+
+# Explicitly ignore workspace (even if it was unignored by .agent rule somehow, though unlikely)
+workspace/
+node_modules/
+.DS_Store
+*.log
