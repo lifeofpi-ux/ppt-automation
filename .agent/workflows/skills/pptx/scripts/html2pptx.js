@@ -204,7 +204,25 @@ async function extractSlideData(page) {
 
         const isText = node.nodeType === Node.TEXT_NODE || node.tagName === 'BR';
         if (isText) {
-          const text = node.tagName === 'BR' ? '\n' : textTransform(node.textContent.replace(/\s+/g, ' '));
+          let text;
+          if (node.tagName === 'BR') {
+            text = '\n';
+            // Remove trailing space from the last run if it exists
+            if (runs.length > 0) {
+              const lastRun = runs[runs.length - 1];
+              lastRun.text = lastRun.text.replace(/\s+$/, '');
+            }
+          } else {
+            text = textTransform(node.textContent.replace(/\s+/g, ' '));
+            // If the last run ended with a newline, remove leading space from this text
+            if (runs.length > 0) {
+              const lastRun = runs[runs.length - 1];
+              if (lastRun.text.endsWith('\n')) {
+                text = text.replace(/^\s+/, '');
+              }
+            }
+          }
+
           const prevRun = runs[runs.length - 1];
           if (prevNodeIsText && prevRun) {
             prevRun.text += text;

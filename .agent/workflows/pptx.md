@@ -200,6 +200,8 @@ p {
 
 **Image Styling Guidelines**:
 - **Rounded Corners**: Apply `border-radius: 12px` (approx. 9pt) to images for a modern, friendly look.
+- **Aspect Ratio**: Always use `object-fit: cover` for content images to ensure they fill their container without distortion. **NEVER use `object-fit: contain` for content images** as it leaves empty space.
+- **Icon Reset**: Explicitly set `object-fit: contain` for icons to prevent them from being cropped.
 - **No Borders**: Do NOT add borders to images. Let them blend or stand out via shadow/contrast.
 - **Shadows**: Use `box-shadow` to add depth. Example: `box-shadow: 0 8px 24px rgba(0,0,0,0.2);`.
 
