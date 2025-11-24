@@ -94,6 +94,7 @@ function addElements(slideData, targetSlide, pres) {
         color: el.style.color,
         align: el.style.align,
         valign: 'top',
+        lineSpacing: el.style.lineSpacing,
         paraSpaceBefore: el.style.paraSpaceBefore,
         paraSpaceAfter: el.style.paraSpaceAfter,
         margin: el.style.margin
@@ -140,6 +141,7 @@ function addElements(slideData, targetSlide, pres) {
         italic: el.style.italic,
         underline: el.style.underline,
         valign: 'top',
+        lineSpacing: el.style.lineSpacing,
         paraSpaceBefore: el.style.paraSpaceBefore,
         paraSpaceAfter: el.style.paraSpaceAfter,
         inset: 0  // Remove default PowerPoint internal padding
@@ -381,6 +383,7 @@ async function extractSlideData(page) {
               // bold: listFontInfo.bold, // List items handle bold individually
               color: rgbToHex(computed.color),
               align: computed.textAlign,
+              lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
               paraSpaceBefore: pxToPoints(computed.marginTop),
               paraSpaceAfter: pxToPoints(computed.marginBottom),
               margin: marginLeft
@@ -404,6 +407,7 @@ async function extractSlideData(page) {
           fontFace: fontInfo.name,
           color: rgbToHex(computed.color),
           align: computed.textAlign,
+          lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
           paraSpaceBefore: pxToPoints(computed.marginTop),
           paraSpaceAfter: pxToPoints(computed.marginBottom),
           transparency: extractAlpha(computed.color),
