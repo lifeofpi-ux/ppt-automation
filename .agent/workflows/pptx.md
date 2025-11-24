@@ -48,6 +48,23 @@ You need raw XML access for: comments, speaker notes, slide layouts, animations,
 
 When creating a new PowerPoint presentation from scratch, use the **html2pptx** workflow to convert HTML slides to PowerPoint with accurate positioning.
 
+### Project Structure (Mandatory)
+
+To keep the workspace clean, you **MUST** create and use a dedicated asset folder for each project. All generated files (scripts, images, HTML slides) should be contained within this folder.
+
+**Structure**:
+```
+workspace/
+└── [project_name]/
+    ├── assets/
+    │   ├── scripts/
+    │   │   └── generate_icons.js  <-- Copied from template and customized
+    │   ├── images/                <-- All generated images (icons, backgrounds)
+    │   ├── thumbnails/            <-- Validation thumbnails
+    │   └── slides/                <-- HTML slide files
+    └── [project_name].pptx        <-- Final output file
+```
+
 ### Design Principles for Sophisticated Presentations
 
 **CRITICAL**: To achieve a "very beautiful and sophisticated" look, follow these advanced design principles:
@@ -210,8 +227,16 @@ p {
      - **Style**: Match the icon color to the presentation's primary theme color.
      - **Usage**: Use icons **ONLY as text prefixes** (e.g., bullet points, section headers, small indicators).
      - **Workflow**:
-       - Update `.agent/workflows/skills/pptx/scripts/generate_icons.js` to render selected Phosphor Duotone icons to PNG using `sharp`.
-       - Run `node .agent/workflows/skills/pptx/scripts/generate_icons.js` to populate `workspace/images/`.
+       - **Setup**: Create the project folder structure: `mkdir -p workspace/[project_name]/assets/scripts`
+       - **Copy Template**: Copy the icon generation template to your project:
+         ```bash
+         cp .agent/workflows/skills/pptx/scripts/generate_icons.template.js workspace/[project_name]/assets/scripts/generate_icons.js
+         ```
+       - **Customize**: Edit `workspace/[project_name]/assets/scripts/generate_icons.js` to include the specific icons and colors needed for your project.
+       - **Run**: Execute the script to generate icons into `workspace/[project_name]/assets/images/`:
+         ```bash
+         node workspace/[project_name]/assets/scripts/generate_icons.js
+         ```
 
    - **2. Generate AI Images (Nanobanana - ALL Visualizations)**:
      - **Rule**: For EVERY visual element that is NOT a text prefix, you **MUST** use `generate_image` (Nanobanana).
@@ -222,11 +247,11 @@ p {
        - **Textures**: Generate subtle textures for card backgrounds or overlays.
      - **Prompts**: Write detailed, artistic prompts. Use keywords like "minimalist", "abstract", "high resolution", "soft lighting", "corporate memphis", "glassmorphism", "infographic style".
      - **Context**: Ensure the image style matches the presentation's "Vibe" (defined in step 2).
-     - **Save**: Store generated images in `workspace/images/` with descriptive names.
+     - **Save**: Store generated images in `workspace/[project_name]/assets/images/` with descriptive names.
 
-   - **Save**: Store all generated assets in `workspace/images/`.
+   - **Save**: Store all generated assets in `workspace/[project_name]/assets/images/`.
 
-3. Create an HTML file for each slide with proper dimensions (e.g., 720pt × 405pt for 16:9)
+3. Create an HTML file for each slide in `workspace/[project_name]/assets/slides/`
    - **Global Reset**: Include `* { box-sizing: border-box; }` in your CSS.
    - **Reference Assets**: Use relative paths to your generated images (e.g., `background-image: url('../images/aurora_bg.png')`).
    - Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content
@@ -249,7 +274,7 @@ p {
    - Save the presentation using `pptx.writeFile()`
 
 5. **Visual validation**: Generate thumbnails and inspect for layout issues
-   - Create thumbnail grid: `python .agent/workflows/skills/pptx/scripts/thumbnail.py output.pptx workspace/thumbnails --cols 4`
+   - Create thumbnail grid: `python .agent/workflows/skills/pptx/scripts/thumbnail.py workspace/[project_name]/[project_name].pptx workspace/[project_name]/assets/thumbnails --cols 4`
    - Read and carefully examine the thumbnail image for:
      - **Text cutoff**: Text being cut off by header bars, shapes, or slide edges
      - **Text overlap**: Text overlapping with other text or shapes
