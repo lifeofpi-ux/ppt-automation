@@ -94,7 +94,6 @@ function addElements(slideData, targetSlide, pres) {
         color: el.style.color,
         align: el.style.align,
         valign: 'top',
-        lineSpacing: el.style.lineSpacing,
         paraSpaceBefore: el.style.paraSpaceBefore,
         paraSpaceAfter: el.style.paraSpaceAfter,
         margin: el.style.margin
@@ -141,7 +140,6 @@ function addElements(slideData, targetSlide, pres) {
         italic: el.style.italic,
         underline: el.style.underline,
         valign: 'top',
-        lineSpacing: el.style.lineSpacing,
         paraSpaceBefore: el.style.paraSpaceBefore,
         paraSpaceAfter: el.style.paraSpaceAfter,
         inset: 0  // Remove default PowerPoint internal padding
@@ -213,7 +211,8 @@ async function extractSlideData(page) {
               lastRun.text = lastRun.text.replace(/\s+$/, '');
             }
           } else {
-            text = textTransform(node.textContent.replace(/\s+/g, ' '));
+            // Normalize all whitespace (tabs, multiple spaces, newlines) to single space
+            text = textTransform(node.textContent.replace(/[\s\t\n\r]+/g, ' '));
             // If the last run ended with a newline, remove leading space from this text
             if (runs.length > 0) {
               const lastRun = runs[runs.length - 1];
@@ -382,7 +381,6 @@ async function extractSlideData(page) {
               // bold: listFontInfo.bold, // List items handle bold individually
               color: rgbToHex(computed.color),
               align: computed.textAlign,
-              lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
               paraSpaceBefore: pxToPoints(computed.marginTop),
               paraSpaceAfter: pxToPoints(computed.marginBottom),
               margin: marginLeft
@@ -406,7 +404,6 @@ async function extractSlideData(page) {
           fontFace: fontInfo.name,
           color: rgbToHex(computed.color),
           align: computed.textAlign,
-          lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
           paraSpaceBefore: pxToPoints(computed.marginTop),
           paraSpaceAfter: pxToPoints(computed.marginBottom),
           transparency: extractAlpha(computed.color),
@@ -440,9 +437,10 @@ async function extractSlideData(page) {
             style: adjustedStyle
           });
         } else {
-          // Plain text
+          // Plain text - normalize whitespace aggressively
           const textTransform = computed.textTransform;
-          const transformedText = applyTextTransform(el.textContent.trim(), textTransform);
+          const normalizedText = el.textContent.replace(/[\s\t\n\r]+/g, ' ').trim();
+          const transformedText = applyTextTransform(normalizedText, textTransform);
 
           if (transformedText) {
             elements.push({

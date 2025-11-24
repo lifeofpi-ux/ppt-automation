@@ -263,7 +263,22 @@ p {
          ```
 
    - **2. Generate AI Images (Nanobanana - ALL Visualizations)**:
-     - **Rule**: For EVERY visual element that is NOT a text prefix, you **MUST** use `generate_image` (Nanobanana).
+      - **Rule**: For EVERY visual element that is NOT a text prefix, you **MUST** use `generate_image` (Nanobanana).
+      - **Request Structure**: Use the following JSON structure for image generation requests:
+        ```json
+        {
+            "contents": [{
+              "parts": [{"text": " 요청내용 "}]
+            }],
+            "tools": [{"googleSearch": {}}],
+            "generationConfig": {
+                "imageConfig": {
+                  "aspectRatio": "16:9",
+                  "imageSize": "4K"
+              }
+            }
+        }
+        ```
      - **Required Assets**:
        - **Backgrounds**: Generate unique, high-resolution backgrounds (e.g., "soft aurora gradient", "abstract geometric mesh", "paper texture"). **Do NOT use CSS gradients.**
        - **Infographics**: Generate specific diagrams or charts (e.g., "minimalist pie chart illustration", "process flow diagram").
