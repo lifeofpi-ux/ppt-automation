@@ -219,11 +219,11 @@ async function extractSlideData(page) {
           } else {
             // Normalize all whitespace (tabs, multiple spaces, newlines) to single space
             let text = textTransform(node.textContent.replace(/[\s\t\n\r]+/g, ' '));
-            // If the last run was a break, remove leading space from this text
+            // If the last run was a break, ensure one leading space
             if (runs.length > 0) {
               const lastRun = runs[runs.length - 1];
               if (lastRun.options && lastRun.options.break) {
-                text = text.replace(/^\s+/, '');
+                text = ' ' + text.replace(/^\s+/, '');
               }
             }
 
