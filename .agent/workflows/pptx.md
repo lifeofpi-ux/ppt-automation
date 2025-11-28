@@ -69,10 +69,11 @@ workspace/
 
 **CRITICAL**: To achieve a "very beautiful and sophisticated" look, follow these advanced design principles:
 
-1.  **Less is More (Negative Space)**:
-    *   Don't fill every corner. White space (or negative space) is luxury.
-    *   Give content room to breathe. Increase margins and padding beyond the minimum.
-    *   **Rule**: If in doubt, remove it. If it's not essential, delete it.
+1.  **High Information Density & Professional Polish**:
+    *   **Avoid Empty Slides**: While whitespace is important, slides must feel "rich" and "informative".
+    *   **Maximize Text Content**: Do not just use keywords. Use full sentences, detailed descriptions, and explanatory subtext. Provide context, specs, and data.
+    *   **Visual Texture**: Actively use **Badges, Tags, Status Pills, and Metadata** (e.g., "v2.0", "New", "High Priority") to add credibility and a professional "dashboard" feel.
+    *   **Complex Layouts**: Prefer multi-column layouts and **Bento Grids** over simple centered text.
 
 2.  **Typography-Driven Design**:
     *   **Font Selection (Korean)**:
@@ -99,10 +100,59 @@ workspace/
     *   **Consistent Application**: Use this color for primary actions, active states, key data points, and badges.
     *   **Harmony**: Ensure the key color contrasts well with the background and is used sparingly (10-20% of the slide) to maintain impact.
 
-4.  **Art Direction with Generated Assets**:
+6.  **Art Direction with Generated Assets**:
     *   **Do NOT rely on CSS gradients** (they fail in conversion).
     *   **Do NOT use generic stock photos**.
     *   **STRATEGY**: Use `generate_image` to create bespoke backgrounds, textures, and illustrations.
+    *   **Image Styling (MANDATORY)**: ALWAYS apply `border-radius: 12pt` (or 16px) to all content images (screenshots, photos) to ensure a modern, premium look. Sharp corners look outdated.
+
+### Step 0: Design Selection Interaction (MANDATORY)
+
+**Before starting ANY work**, you MUST ask the user to select a design style. Present the following options clearly:
+
+> "어떤 디자인 스타일로 프레젠테이션을 생성할까요?"
+> 
+> 1. **Tech Showcase** (Modern, Glassmorphism, Bento Grid) - *Best for Apps/SaaS*
+> 2. **Minimalist Corporate** (Clean, White/Navy, Trustworthy) - *Best for Business/Reports*
+> 3. **Creative Storytelling** (Warm, Serif Fonts, Emotional) - *Best for Essays/Stories*
+> 4. **Dark Mode Neon** (Black, Glowing, High Contrast) - *Best for Trends/Gaming*
+> 5. **Custom Design** (Tell me your preference!)
+
+**Action based on selection**:
+- If **1-4 selected**: Read the corresponding template file from `.agent/workflows/skills/pptx/templates/`.
+- If **5 selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+
+### Using Design Templates
+
+You can use pre-defined design templates to quickly achieve high-quality results.
+
+#### Available Templates
+- **Tech Showcase Style**: Modern, glassmorphic design for tech products.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/tech_showcase_style.md`
+- **Minimalist Corporate**: Clean, professional business design.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/minimalist_corporate.md`
+- **Creative Storytelling**: Emotional, narrative-driven design.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/creative_storytelling.md`
+- **Dark Mode Neon**: Futuristic, high-contrast dark design.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/dark_mode_neon.md`
+- **Academic Structured**: High-density, typography-driven design for education.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/academic_structured.md`
+
+### Optimization: Parallel Asset Generation (HIGH PRIORITY)
+
+To maximize efficiency, you **MUST** execute asset generation tasks in parallel whenever possible, using the `waitForPreviousTools: false` option.
+
+**Parallel Workflow Strategy**:
+1.  **Initial Setup**: Create project folders and scripts (Sequential).
+2.  **Asset Generation (PARALLEL)**:
+    *   Call `run_command` to execute the icon generation script.
+    *   Call `generate_image` for Background 1.
+    *   Call `generate_image` for Background 2.
+    *   Call `generate_image` for Infographics.
+    *   *Note*: Do NOT wait for one image to finish before starting the next.
+3.  **HTML Creation (PARALLEL)**:
+    *   Once assets are triggered, you can start writing `slide1.html`, `slide2.html`, etc., assuming the assets will be ready by the time the user renders them.
+    *   *Note*: If you need to check the generated image path, you may need to wait, but generally, standard naming conventions allow you to write HTML blindly.
 
 #### Hybrid Rendering & Styling Mechanism
 The `html2pptx` workflow uses a **Hybrid Rendering** approach to ensure 100% visual fidelity:
@@ -298,10 +348,7 @@ p {
      - The target PPTX slide size is typically **10 inches x 5.625 inches** (16:9).
      - **Check Height**: Before finalizing, verify that the calculated height of your HTML content does not exceed the slide height.
      - **Adjust**: If content risks overflowing, reduce font sizes, adjust line-heights, or simplify content *in the HTML phase* to avoid "overfit" errors during conversion.
-   - **CRITICAL**: Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content.
-     - Text inside `<span>` or `<div>` tags WITHOUT a parent text tag (like `<p>`) will NOT be converted to PowerPoint text.
-     - ✅ Correct: `<p><span>Text</span></p>`
-     - ❌ Incorrect: `<span>Text</span>` or `<div>Text</div>`
+   - Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content
    - Use `class="placeholder"` for areas where charts/tables will be added (render with gray background for visibility)
    - **CRITICAL**: Rasterize icons as PNG images FIRST using Sharp, then reference in HTML
    - **LAYOUT**: Use CSS Grid (`display: grid`) for Bento Box layouts or Flexbox for alignment.
