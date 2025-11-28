@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PROJECT_NAME}} - Presentation</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #slide-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            width: 1280px;
+            /* 16:9 Aspect Ratio Base */
+            height: 720px;
+            border: none;
+            background: white;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        body:hover .controls {
+            opacity: 1;
+        }
+
+        button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #007AFF;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="slide-container">
+        <iframe id="slide-frame" src=""></iframe>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevSlide()">❮</button>
+        <button onclick="toggleFullScreen()">⛶</button>
+        <button onclick="nextSlide()">❯</button>
+    </div>
+
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">0</span>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <script>
+        // Inject slides list dynamically
+        const slides = {{ SLIDES_LIST }};
+        let currentIndex = 0;
+
+        const frame = document.getElementById('slide-frame');
+        const currentEl = document.getElementById('current-slide');
+        const totalEl = document.getElementById('total-slides');
+        const progressEl = document.getElementById('progress-bar');
+
+        function init() {
+            totalEl.textContent = slides.length;
+            loadSlide(0);
+            resizeIframe();
+            window.addEventListener('resize', resizeIframe);
+            window.addEventListener('keydown', handleKeydown);
+        }
+
+        function loadSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= slides.length) index = slides.length - 1;
+
+            currentIndex = index;
+            frame.src = slides[currentIndex];
+
+            // Update UI
+            currentEl.textContent = currentIndex + 1;
+            const progress = ((currentIndex + 1) / slides.length) * 100;
+            progressEl.style.width = `${progress}%`;
+        }
+
+        function nextSlide() {
+            loadSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            loadSlide(currentIndex - 1);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function resizeIframe() {
+            // Scale iframe to fit window while maintaining 16:9 aspect ratio
+            const container = document.getElementById('slide-container');
+            const targetRatio = 16 / 9;
+            const containerRatio = container.clientWidth / container.clientHeight;
+
+            let scale;
+            if (containerRatio > targetRatio) {
+                // Container is wider than 16:9 -> Fit to height
+                scale = (container.clientHeight * 0.9) / 720; // 90% height margin
+            } else {
+                // Container is taller than 16:9 -> Fit to width
+                scale = (container.clientWidth * 0.9) / 1280; // 90% width margin
+            }
+
+            frame.style.transform = `scale(${scale})`;
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

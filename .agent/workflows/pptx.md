@@ -65,6 +65,15 @@ workspace/
     └── [project_name].pptx        <-- Final output file
 ```
 
+### Cross-Platform Compatibility (Windows/macOS)
+
+To ensure this workflow operates seamlessly on both macOS and Windows:
+1.  **Path Handling**: ALWAYS use `path.join()` and `path.resolve()` in Node.js scripts. NEVER concatenate strings with forward slashes (`/`) or backslashes (`\`) manually.
+    *   *Bad*: `const p = dir + "/" + file;`
+    *   *Good*: `const p = path.join(dir, file);`
+2.  **Shell Commands**: When using `run_command`, prefer standard commands available in both environments or use Node.js `fs` module for file operations (copy, move, delete) instead of shell commands (`cp`, `mv`, `rm`) to avoid syntax errors on Windows Command Prompt/PowerShell.
+3.  **Encoding**: Ensure all text files are read/written with `utf8` encoding to handle Korean characters correctly on Windows.
+
 ### Design Principles for Sophisticated Presentations
 
 **CRITICAL**: To achieve a "very beautiful and sophisticated" look, follow these advanced design principles:
@@ -76,11 +85,11 @@ workspace/
     *   **Complex Layouts**: Prefer multi-column layouts and **Bento Grids** over simple centered text.
 
 2.  **Typography-Driven Design**:
-    *   **Font Selection (Korean)**:
-        *   **Standard / Modern**: **Pretendard** (or `Noto Sans KR`). Best for business, tech, and general use. Clean and legible.
-        *   **Emotional / Storytelling**: **Noto Serif KR** (Elegant) or **Gowun Batang** (Lyrical). Best for quotes, literature, or luxury brands.
-        *   **Friendly / Soft**: **Gowun Dodum** or **Nanum Gothic**.
-        *   *Instruction*: Always include the Google Fonts `<link>` or `@import` in your HTML to ensure proper rendering.
+    *   **Font Selection (Cross-Platform)**:
+        *   **Standard / Modern**: **Pretendard**, `Noto Sans KR`, `Malgun Gothic` (Windows), or `Apple SD Gothic Neo` (macOS).
+        *   **Emotional / Storytelling**: **Noto Serif KR**, **Gowun Batang**, or `Batang` (Windows).
+        *   *Instruction*: Always define a robust font stack in CSS: `font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;`.
+    *   **Contrast**: Pair a heavy weight (Bold/ExtraBold) header with a light/regular body.
     *   **Contrast**: Pair a heavy weight (Bold/ExtraBold) header with a light/regular body.
     *   **Tight Headings**: Use `letter-spacing: -0.02em` or `-0.03em` for large headings to make them look tighter and more professional.
     *   **Relaxed Body**: Use `line-height: 1.6` for body text to improve readability and elegance.
