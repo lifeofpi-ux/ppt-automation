@@ -12,6 +12,7 @@
   "dependencies": {
     "jsdom": "^27.0.1",
     "pptxgenjs": "^4.0.1",
+    "puppeteer": "^24.31.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",

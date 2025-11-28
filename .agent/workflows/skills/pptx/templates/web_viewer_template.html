@@ -26,13 +26,17 @@
         }
 
         iframe {
-            width: 1280px;
-            /* 16:9 Aspect Ratio Base */
-            height: 720px;
+            width: 960px;
+            /* 720pt = 960px (Standard PPTX size) */
+            height: 540px;
+            /* 405pt = 540px */
             border: none;
-            background: white;
+            background: transparent;
+            /* Remove white background */
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
             transition: transform 0.3s ease;
+            transform-origin: center;
+            /* Ensure scaling from center */
         }
 
         /* Controls */
@@ -140,7 +144,7 @@
             if (index >= slides.length) index = slides.length - 1;
 
             currentIndex = index;
-            frame.src = slides[currentIndex];
+            frame.srcdoc = slides[currentIndex];
 
             // Update UI
             currentEl.textContent = currentIndex + 1;
@@ -180,10 +184,10 @@
             let scale;
             if (containerRatio > targetRatio) {
                 // Container is wider than 16:9 -> Fit to height
-                scale = (container.clientHeight * 0.9) / 720; // 90% height margin
+                scale = container.clientHeight / 540; // 100% height (No margin)
             } else {
                 // Container is taller than 16:9 -> Fit to width
-                scale = (container.clientWidth * 0.9) / 1280; // 90% width margin
+                scale = container.clientWidth / 960; // 100% width (No margin)
             }
 
             frame.style.transform = `scale(${scale})`;
