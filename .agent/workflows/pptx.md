@@ -173,6 +173,66 @@ The `html2pptx` workflow uses a **Hybrid Rendering** approach to ensure 100% vis
 *   **Text Containers**: Text containers themselves should generally be transparent. Do NOT apply borders or backgrounds to the specific `<p>` or `<h1>` tags if you want them editable, as the background capture handles the visual container.
 *   **No Borders**: Do NOT use borders on tables or content divs unless explicitly required for a specific chart style. The default should be borderless for a clean look.
 
+#### Managing Overflow: Critical Strategy
+
+**When `html2pptx` reports overflow errors**, follow this systematic approach to fix them:
+
+**Priority 1: Reduce Icon/Image Sizes** (Fastest Fix)
+1. **Icons**: Reduce from 48pt → 40pt → 32pt → 28pt as needed
+2. **Product Images**: Scale down width/height by 10-15%
+3. **Decorative Elements**: Remove or significantly reduce blur effects that expand element boundaries
+
+**Priority 2: Optimize Bento Grid Layout**
+- **Switch Grid Orientation**: Change `3x2` (3 columns, 2 rows) → `2x3` (2 columns, 3 rows) to reduce vertical height
+- **Horizontal Layout**: For cards, switch from vertical `flex-direction: column` to horizontal `flex-direction: row` with icon on the left
+- **Compact Grid Gaps**: Reduce `gap: 20pt` → `16pt` → `12pt` → `10pt`
+
+**Priority 3: Reduce Text Density**
+- **Shorten Descriptions**: Trim verbose text to essential keywords
+- **Font Sizes**: Reduce body text from `11pt` → `10pt` → `9pt` → `8.5pt`
+- **Line Height**: Tighten from `1.6` → `1.5` → `1.4`
+- **Margins/Padding**: Reduce spacing between elements
+
+**Priority 4: Restructure Layout**
+- **Remove Elements**: Drop the least important card/section
+- **Split Into Multiple Slides**: If content is genuinely dense, create 2 slides instead of 1
+- **Alternative Layouts**: Use asymmetric layouts (e.g., 1 large + 2 small cards) instead of uniform grids
+
+**Example: Fixing a 3x2 Grid Overflow**
+```css
+/* BEFORE (Overflows by 80pt vertically) */
+.grid {
+  grid-template-columns: 1fr 1fr 1fr;  /* 3 columns */
+  gap: 18pt;
+}
+.card {
+  padding: 20pt;
+}
+.icon {
+  width: 48pt;
+  height: 48pt;
+  margin-bottom: 16pt;
+}
+
+/* AFTER (Fits perfectly) */
+.grid {
+  grid-template-columns: 1fr 1fr;  /* 2 columns */
+  gap: 12pt;
+}
+.card {
+  padding: 14pt;
+  flex-direction: row;  /* Horizontal layout */
+  gap: 12pt;
+}
+.icon {
+  width: 32pt;  /* Reduced */
+  height: 32pt;
+  margin-bottom: 0;  /* Not needed in horizontal layout */
+}
+```
+
+**Remember**: The html2pptx script requires content to fit within `720pt x 405pt` (with a 0.5" bottom margin). Always leave headroom for slight browser rendering variations.
+
 #### Modern Design Aesthetics & CSS Snippets
 
 **1. Sophisticated Minimalist Aesthetic**
