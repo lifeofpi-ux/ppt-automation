@@ -80,10 +80,26 @@ function validateDimensions(bodyDimensions, pres) {
   return errors;
 }
 
+
+
 // Helper: Add elements to slide
 function addElements(slideData, targetSlide, pres) {
   for (const el of slideData.elements) {
-    if (el.type === 'list') {
+    if (el.type === 'image') {
+      let imagePath = el.src;
+      if (imagePath.startsWith('file://')) {
+        imagePath = imagePath.replace('file://', '');
+        imagePath = decodeURIComponent(imagePath);
+      }
+
+      targetSlide.addImage({
+        path: imagePath,
+        x: el.position.x,
+        y: el.position.y,
+        w: el.position.w,
+        h: el.position.h
+      });
+    } else if (el.type === 'list') {
       const listOptions = {
         x: el.position.x,
         y: el.position.y,
@@ -104,47 +120,46 @@ function addElements(slideData, targetSlide, pres) {
     } else {
       // Check if text is single-line (height suggests one line)
       const lineHeight = el.style.lineSpacing || el.style.fontSize * 1.2;
+      // If height is close to line height (within 1.5x), treat as single line
       const isSingleLine = el.position.h <= lineHeight * 1.5;
 
       let adjustedX = el.position.x;
       let adjustedW = el.position.w;
 
-      // Make single-line text wider to account for rendering differences and prevent wrapping
-      // Increased buffer from 2% to 5% + 0.1 inch constant
-      if (isSingleLine) {
-        const widthIncrease = (el.position.w * 0.05) + 0.1;
-        const align = el.style.align;
+      // Always add a small buffer to width to prevent "last word wrapping" due to font rendering differences
+      // PowerPoint's text rendering is often slightly wider than browser's
+      const widthBuffer = (el.position.w * 0.05) + 0.15; // 5% + 0.15 inch
 
-        if (align === 'center') {
-          // Center: expand both sides
-          adjustedX = el.position.x - (widthIncrease / 2);
-          adjustedW = el.position.w + widthIncrease;
-        } else if (align === 'right') {
-          // Right: expand to the left
-          adjustedX = el.position.x - widthIncrease;
-          adjustedW = el.position.w + widthIncrease;
-        } else {
-          // Left (default): expand to the right
-          adjustedW = el.position.w + widthIncrease;
-        }
+      const align = el.style.align;
+      if (align === 'center') {
+        adjustedX = el.position.x - (widthBuffer / 2);
+        adjustedW = el.position.w + widthBuffer;
+      } else if (align === 'right') {
+        adjustedX = el.position.x - widthBuffer;
+        adjustedW = el.position.w + widthBuffer;
+      } else {
+        // Left align
+        adjustedW = el.position.w + widthBuffer;
       }
 
       const textOptions = {
         x: adjustedX,
         y: el.position.y,
         w: adjustedW,
-        h: el.position.h,
+        h: el.position.h, // Keep original height, let it overflow if needed or auto-fit
         fontSize: el.style.fontSize,
         fontFace: el.style.fontFace,
         color: el.style.color,
         bold: el.style.bold,
         italic: el.style.italic,
         underline: el.style.underline,
-        valign: 'top',
+        valign: 'top', // Always top align to match HTML flow
         lineSpacing: el.style.lineSpacing,
         paraSpaceBefore: el.style.paraSpaceBefore,
         paraSpaceAfter: el.style.paraSpaceAfter,
-        inset: 0  // Remove default PowerPoint internal padding
+        inset: 0,  // Remove default PowerPoint internal padding
+        wrap: true, // Always enable wrapping to support multi-line text
+        autoFit: false // Do not auto-shrink text
       };
 
       if (el.style.align) textOptions.align = el.style.align;
@@ -160,6 +175,8 @@ function addElements(slideData, targetSlide, pres) {
 // Helper: Extract slide data from HTML page
 async function extractSlideData(page) {
   return await page.evaluate(() => {
+    const processed = new Set(); // Defined at the top to be accessible everywhere
+
     const PT_PER_PX = 0.75;
     const PX_PER_IN = 96;
 
@@ -195,122 +212,111 @@ async function extractSlideData(page) {
       return text;
     };
 
-    // Parse inline formatting tags
-    const parseInlineFormatting = (element, baseOptions = { paraSpaceBefore: 0, paraSpaceAfter: 0 }, runs = [], baseTextTransform = (x) => x) => {
-      let prevNodeIsText = false;
-
-      element.childNodes.forEach((node) => {
-        let textTransform = baseTextTransform;
-
-        const isText = node.nodeType === Node.TEXT_NODE || node.tagName === 'BR';
-        if (isText) {
-          if (node.tagName === 'BR') {
-            // Use PptxGenJS break option instead of \n to avoid paragraph spacing
-            // Remove trailing space from the last run if it exists
-            if (runs.length > 0) {
-              const lastRun = runs[runs.length - 1];
-              lastRun.text = lastRun.text.replace(/\s+$/, '');
-            }
-            // Add a break run
-            runs.push({
-              text: '',
-              options: { break: true }
-            });
-          } else {
-            // Normalize all whitespace (tabs, multiple spaces, newlines) to single space
-            let text = textTransform(node.textContent.replace(/[\s\t\n\r]+/g, ' '));
-            // If the last run was a break, ensure one leading space
-            if (runs.length > 0) {
-              const lastRun = runs[runs.length - 1];
-              if (lastRun.options && lastRun.options.break) {
-                text = ' ' + text.replace(/^\s+/, '');
-              }
-            }
-
-            const prevRun = runs[runs.length - 1];
-            if (prevNodeIsText && prevRun && !prevRun.options.break) {
-              prevRun.text += text;
-            } else {
-              runs.push({ text, options: { ...baseOptions } });
-            }
-          }
-
-        } else if (node.nodeType === Node.ELEMENT_NODE && node.textContent.trim()) {
-          const options = { ...baseOptions };
-          const computed = window.getComputedStyle(node);
-
-          if (['SPAN', 'B', 'STRONG', 'I', 'EM', 'U'].includes(node.tagName)) {
-            const isBold = computed.fontWeight === 'bold' || parseInt(computed.fontWeight) >= 600;
-            if (isBold && !shouldSkipBold(computed.fontFamily)) options.bold = true;
-            if (computed.fontStyle === 'italic') options.italic = true;
-            if (computed.textDecoration && computed.textDecoration.includes('underline')) options.underline = true;
-            if (computed.color && computed.color !== 'rgb(0, 0, 0)') {
-              options.color = rgbToHex(computed.color);
-              const transparency = extractAlpha(computed.color);
-              if (transparency !== null) options.transparency = transparency;
-            }
-            if (computed.fontSize) options.fontSize = pxToPoints(computed.fontSize);
-
-            if (computed.textTransform && computed.textTransform !== 'none') {
-              textTransform = (text) => applyTextTransform(text, computed.textTransform);
-            }
-
-            parseInlineFormatting(node, options, runs, textTransform);
-          }
-        }
-        prevNodeIsText = isText;
-      });
-
-      if (runs.length > 0) {
-        runs[0].text = runs[0].text.replace(/^\s+/, '');
-        runs[runs.length - 1].text = runs[runs.length - 1].text.replace(/\s+$/, '');
-      }
-      return runs.filter(r => r.text.length > 0);
-    };
-
-    // Font Mapping for macOS (Apple SD Gothic Neo supports granular weights)
+    // Font Mapping
     const mapFont = (family, weight) => {
       const normalizedFamily = family.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
       const numWeight = parseInt(weight);
-
-      // Target Noto Sans KR or generic sans-serif to Apple SD Gothic Neo on Mac
       if (normalizedFamily.includes('noto sans kr') || normalizedFamily.includes('sans-serif')) {
         let suffix = '';
-        let isBoldProp = false;
-
         if (numWeight <= 100) suffix = 'Thin';
         else if (numWeight <= 200) suffix = 'UltraLight';
         else if (numWeight <= 300) suffix = 'Light';
-        else if (numWeight <= 400) suffix = 'Regular'; // or empty
+        else if (numWeight <= 400) suffix = 'Regular';
         else if (numWeight <= 500) suffix = 'Medium';
         else if (numWeight <= 600) suffix = 'SemiBold';
         else if (numWeight <= 700) suffix = 'Bold';
         else if (numWeight <= 800) suffix = 'ExtraBold';
         else if (numWeight >= 900) suffix = 'Heavy';
-
-        // For standard Bold (700), we can either use the suffix or the bold property.
-        // Using the specific font family is often more reliable for exact weight matching on Mac.
         if (suffix === 'Regular') return { name: 'Apple SD Gothic Neo', bold: false };
         return { name: `Apple SD Gothic Neo ${suffix}`, bold: false };
       }
-
-      // Default fallback
-      return {
-        name: normalizedFamily,
-        bold: weight === 'bold' || numWeight >= 600
-      };
+      return { name: normalizedFamily, bold: weight === 'bold' || numWeight >= 600 };
     };
+
+    // Check if an element is visible
+    const isVisible = (el) => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    };
+
+    // Check if an element is block-level (conceptually, for our skipping logic)
+    const isBlock = (el) => {
+      const style = window.getComputedStyle(el);
+      return ['block', 'flex', 'grid', 'table', 'table-row', 'list-item'].includes(style.display) ||
+        ['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'TABLE', 'TR', 'TD', 'TH', 'BLOCKQUOTE'].includes(el.tagName);
+    };
+
+    // Parse inline formatting, but SKIP block children (they will be processed as separate elements)
+    const parseInlineContent = (element, baseOptions, runs = [], baseTextTransform = (x) => x) => {
+      let prevNodeIsText = false;
+
+      element.childNodes.forEach((node) => {
+        // Skip comment nodes
+        if (node.nodeType === Node.COMMENT_NODE) return;
+
+        // 1. Text Nodes
+        if (node.nodeType === Node.TEXT_NODE) {
+          let text = node.textContent.replace(/[\s\t\n\r]+/g, ' '); // Normalize spaces
+          // Apply transform
+          text = baseTextTransform(text);
+
+          if (text.length > 0) {
+            runs.push({ text, options: { ...baseOptions } });
+          }
+        }
+        // 2. Element Nodes
+        else if (node.nodeType === Node.ELEMENT_NODE) {
+          // If it's a BR, add a break
+          if (node.tagName === 'BR') {
+            // Use breakLine: true for pptxgenjs
+            // Explicitly set spacing to 0 to avoid gaps
+            runs.push({ text: '', options: { breakLine: true, paraSpaceBefore: 0, paraSpaceAfter: 0 } });
+            return;
+          }
+
+          // If it's a BLOCK element, SKIP IT (it will be handled by the main loop)
+          if (isBlock(node)) {
+            return;
+          }
+
+          // It's an INLINE element (SPAN, STRONG, EM, etc.) -> Recurse
+          // Mark as processed so the main loop doesn't pick it up as a standalone text container
+          processed.add(node);
+
+          const computed = window.getComputedStyle(node);
+          const options = { ...baseOptions };
+          let textTransform = baseTextTransform;
+
+          // Update styles
+          const isBold = computed.fontWeight === 'bold' || parseInt(computed.fontWeight) >= 600;
+          if (isBold && !shouldSkipBold(computed.fontFamily)) options.bold = true;
+          if (computed.fontStyle === 'italic') options.italic = true;
+          if (computed.textDecoration && computed.textDecoration.includes('underline')) options.underline = true;
+          if (computed.color && computed.color !== 'rgb(0, 0, 0)') {
+            options.color = rgbToHex(computed.color);
+            const transparency = extractAlpha(computed.color);
+            if (transparency !== null) options.transparency = transparency;
+          }
+          if (computed.fontSize) options.fontSize = pxToPoints(computed.fontSize);
+          if (computed.textTransform && computed.textTransform !== 'none') {
+            textTransform = (text) => applyTextTransform(text, computed.textTransform);
+          }
+
+          parseInlineContent(node, options, runs, textTransform);
+        }
+      });
+
+      return runs;
+    };
+
 
     const elements = [];
     const placeholders = [];
-    const processed = new Set();
-
-    // Only process text elements and placeholders
-    // Everything else (divs, images, shapes) is part of the background image
-    const textTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI'];
+    // processed is defined at top
 
     document.querySelectorAll('*').forEach((el) => {
       if (processed.has(el)) return;
+      if (!isVisible(el)) return;
 
       // Extract placeholders
       const className = (typeof el.className === 'string') ? el.className : (el.getAttribute ? el.getAttribute('class') || '' : '');
@@ -329,51 +335,62 @@ async function extractSlideData(page) {
         return;
       }
 
-      // Process Text Elements
-      if (textTags.includes(el.tagName)) {
-        // Skip if inside another text tag (nested)
-        if (el.parentElement && textTags.includes(el.parentElement.tagName) && el.tagName !== 'LI') return;
+      // Process Images - SKIPPED (Handled by captureStandaloneImages)
+      // if (el.tagName === 'IMG') { ... }
 
-        // Skip LI if processed by UL/OL
-        if (el.tagName === 'LI' && (el.parentElement.tagName === 'UL' || el.parentElement.parentElement.tagName === 'OL')) return;
+      // Skip SVG and IMG elements (they are handled by captureStandaloneImages)
+      if (el.tagName === 'SVG' || el.tagName === 'IMG' || el.closest('svg')) return;
 
+      // Process Text: Check if this element has ANY direct text content
+      let hasDirectText = false;
+      el.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
+          hasDirectText = true;
+        }
+      });
+
+      // Special case for empty UL/OL (they don't have text but contain LIs)
+      // We process UL/OL specifically to handle bullets
+      if (el.tagName === 'UL' || el.tagName === 'OL') {
+        // ... (List processing logic same as before) ...
+        const liElements = Array.from(el.querySelectorAll(':scope > li')); // Only direct children
+        if (liElements.length === 0) return;
+
+        const items = [];
+        const ulComputed = window.getComputedStyle(el);
+        const ulPaddingLeftPt = pxToPoints(ulComputed.paddingLeft);
+        const marginLeft = ulPaddingLeftPt * 0.5;
+        const textIndent = ulPaddingLeftPt * 0.5;
         const rect = el.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
 
-        // Handle Lists
-        if (el.tagName === 'UL' || el.tagName === 'OL') {
-          const liElements = Array.from(el.querySelectorAll('li'));
-          const items = [];
-          const ulComputed = window.getComputedStyle(el);
-          const ulPaddingLeftPt = pxToPoints(ulComputed.paddingLeft);
-          const marginLeft = ulPaddingLeftPt * 0.5;
-          const textIndent = ulPaddingLeftPt * 0.5;
+        liElements.forEach((li, idx) => {
+          // Mark LI as processed so it's not picked up by main loop
+          processed.add(li);
 
-          liElements.forEach((li, idx) => {
-            const isLast = idx === liElements.length - 1;
-            const liComputed = window.getComputedStyle(li);
+          const isLast = idx === liElements.length - 1;
+          const liComputed = window.getComputedStyle(li);
+          const fontInfo = mapFont(liComputed.fontFamily, liComputed.fontWeight);
 
-            // Use mapFont for the list item
-            const fontInfo = mapFont(liComputed.fontFamily, liComputed.fontWeight);
+          // Parse content of LI
+          const runs = parseInlineContent(li, { breakLine: false });
 
-            const runs = parseInlineFormatting(li, { breakLine: false });
-
-            // Apply mapped font to runs if they don't have specific overrides
-            runs.forEach(run => {
-              if (!run.options.fontFace) run.options.fontFace = fontInfo.name;
-              if (run.options.bold === undefined) run.options.bold = fontInfo.bold;
-            });
-
-            if (runs.length > 0) {
-              runs[0].text = runs[0].text.replace(/^[•\-\*▪▸]\s*/, '');
-              runs[0].options.bullet = { indent: textIndent };
-            }
-            if (runs.length > 0 && !isLast) {
-              runs[runs.length - 1].options.breakLine = true;
-            }
-            items.push(...runs);
+          runs.forEach(run => {
+            if (!run.options.fontFace) run.options.fontFace = fontInfo.name;
+            if (run.options.bold === undefined) run.options.bold = fontInfo.bold;
           });
 
+          if (runs.length > 0) {
+            // Clean leading bullets if they exist in text
+            runs[0].text = runs[0].text.replace(/^[•\-\*▪▸]\s*/, '');
+            runs[0].options.bullet = { indent: textIndent };
+          }
+          if (runs.length > 0 && !isLast) {
+            runs[runs.length - 1].options.breakLine = true;
+          }
+          items.push(...runs);
+        });
+
+        if (items.length > 0) {
           const computed = window.getComputedStyle(liElements[0] || el);
           const listFontInfo = mapFont(computed.fontFamily, computed.fontWeight);
 
@@ -384,7 +401,6 @@ async function extractSlideData(page) {
             style: {
               fontSize: pxToPoints(computed.fontSize),
               fontFace: listFontInfo.name,
-              // bold: listFontInfo.bold, // List items handle bold individually
               color: rgbToHex(computed.color),
               align: computed.textAlign,
               lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
@@ -393,11 +409,23 @@ async function extractSlideData(page) {
               margin: marginLeft
             }
           });
-          processed.add(el);
-          return;
         }
+        processed.add(el);
+        // Don't mark children as processed, because LIs might have block children?
+        // Actually for lists, we usually treat LI as the block.
+        // If LI has block children, our parseInlineContent will skip them,
+        // and they will be picked up by the main loop as independent elements.
+        // This is tricky for lists. But standard lists usually just have text.
+        // Let's assume standard lists for now.
+        return;
+      }
 
-        // Handle Headings and Paragraphs
+
+      // If it has direct text, it's a text container candidate
+      if (hasDirectText) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
         const computed = window.getComputedStyle(el);
         const x = rect.left;
         const y = rect.top;
@@ -412,63 +440,273 @@ async function extractSlideData(page) {
           color: rgbToHex(computed.color),
           align: computed.textAlign,
           lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
-          paraSpaceBefore: pxToPoints(computed.marginTop),
-          paraSpaceAfter: pxToPoints(computed.marginBottom),
           transparency: extractAlpha(computed.color),
-          bold: fontInfo.bold // Default bold state from mapping
+          bold: fontInfo.bold
         };
 
-        // Check for mixed formatting (child spans)
-        const hasSpans = el.querySelector('span, b, strong, i, em, u');
-        if (hasSpans) {
-          const runs = parseInlineFormatting(el, baseStyle);
-          // Post-process runs to apply font mapping to them as well
-          runs.forEach(run => {
-            // We need to re-evaluate font for each run because spans might have different weights
-            // However, parseInlineFormatting captures styles. We need to intercept there or map here.
-            // Since we can't easily access the node from the run here, we rely on parseInlineFormatting
-            // to capture basic styles, but we might miss the advanced font mapping for spans.
-            // Improvement: Update parseInlineFormatting to use mapFont.
-          });
+        // Collect all inline text runs
+        const runs = parseInlineContent(el, baseStyle);
 
-          const adjustedStyle = { ...baseStyle };
-          delete adjustedStyle.bold;
-          delete adjustedStyle.italic;
-          delete adjustedStyle.underline;
-          delete adjustedStyle.color;
-          delete adjustedStyle.fontSize;
+        // Filter out empty runs
+        const validRuns = runs.filter(r => r.text.trim().length > 0 || r.options.break);
 
+        if (validRuns.length > 0) {
           elements.push({
-            type: el.tagName.toLowerCase(),
-            text: runs,
+            type: 'text',
+            text: validRuns,
             position: { x: pxToInch(x), y: pxToInch(y), w: pxToInch(w), h: pxToInch(h) },
-            style: adjustedStyle
+            style: baseStyle
           });
-        } else {
-          // Plain text - normalize whitespace aggressively
-          const textTransform = computed.textTransform;
-          const normalizedText = el.textContent.replace(/[\s\t\n\r]+/g, ' ').trim();
-          const transformedText = applyTextTransform(normalizedText, textTransform);
-
-          if (transformedText) {
-            elements.push({
-              type: el.tagName.toLowerCase(),
-              text: transformedText,
-              position: { x: pxToInch(x), y: pxToInch(y), w: pxToInch(w), h: pxToInch(h) },
-              style: {
-                ...baseStyle,
-                italic: computed.fontStyle === 'italic',
-                underline: computed.textDecoration.includes('underline')
-              }
-            });
-          }
         }
+
+        // Mark this element as processed
         processed.add(el);
       }
     });
 
-    return { elements, placeholders, errors: [] }; // Errors handled by getBodyDimensions
+    return { elements, placeholders, errors: [] };
   });
+}
+
+// Helper: Capture specific UI components as images (Skeleton Strategy)
+async function captureComponents(page, tmpDir, htmlFile) {
+  const components = [];
+
+  // Auto-detect components based on CSS properties instead of hardcoded class names
+  const componentElements = await page.evaluate(() => {
+    const els = [];
+
+    // Helper: Check if element has visual styling worth capturing
+    const hasVisualStyling = (el, computed) => {
+      // Skip body and html
+      if (el.tagName === 'BODY' || el.tagName === 'HTML') return false;
+
+      // Check for background (color, image, gradient)
+      const hasBackground = computed.backgroundColor !== 'rgba(0, 0, 0, 0)' &&
+        computed.backgroundColor !== 'transparent';
+      const hasBackgroundImage = computed.backgroundImage !== 'none';
+
+      // Check for borders
+      const hasBorder = computed.borderWidth !== '0px' ||
+        computed.borderTopWidth !== '0px' ||
+        computed.borderRightWidth !== '0px' ||
+        computed.borderBottomWidth !== '0px' ||
+        computed.borderLeftWidth !== '0px';
+
+      // Check for box shadow
+      const hasBoxShadow = computed.boxShadow !== 'none';
+
+      // Check for border radius (rounded corners often indicate designed components)
+      const hasBorderRadius = computed.borderRadius !== '0px';
+
+      // Check for backdrop filter (glassmorphism)
+      const hasBackdropFilter = computed.backdropFilter !== 'none' ||
+        computed.webkitBackdropFilter !== 'none';
+
+      return hasBackground || hasBackgroundImage || hasBorder || hasBoxShadow ||
+        (hasBorderRadius && (hasBackground || hasBackgroundImage)) || hasBackdropFilter;
+    };
+
+    // Helper: Check if element is a decorative positioned element
+    const isDecorativeElement = (el, computed) => {
+      const position = computed.position;
+      if (position !== 'absolute' && position !== 'fixed') return false;
+
+      // Decorative elements are usually positioned and have visual styling
+      return hasVisualStyling(el, computed);
+    };
+
+    // Helper: Check if element is large enough to be a component (not just a small badge)
+    const isSignificantSize = (rect) => {
+      // Components are usually at least 80pt x 80pt
+      // But we also capture smaller elements if they have strong visual styling
+      return rect.width >= 60 && rect.height >= 60;
+    };
+
+    // Traverse all elements
+    document.querySelectorAll('*').forEach((el, index) => {
+      const computed = window.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+
+      // Skip invisible elements
+      if (computed.display === 'none' || computed.visibility === 'hidden' ||
+        computed.opacity === '0' || rect.width === 0 || rect.height === 0) {
+        return;
+      }
+
+      // Skip text-only elements (P, H1-H6, SPAN without background)
+      const isTextElement = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I'].includes(el.tagName);
+      if (isTextElement && !hasVisualStyling(el, computed)) {
+        return;
+      }
+
+      // Capture if:
+      // 1. Has visual styling AND is significant size
+      // 2. OR is a decorative positioned element (any size)
+      const shouldCapture = (hasVisualStyling(el, computed) && isSignificantSize(rect)) ||
+        isDecorativeElement(el, computed);
+
+      if (shouldCapture) {
+        if (!el.id) el.id = `pptx-comp-${index}`;
+
+        els.push({
+          id: el.id,
+          width: rect.width,
+          height: rect.height,
+          className: el.className || '',
+          tagName: el.tagName
+        });
+      }
+    });
+
+    return els;
+  });
+
+  for (const comp of componentElements) {
+    // 1. Hide text inside this component
+    await page.evaluate((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        // Hide direct text nodes by making text transparent
+        // This preserves the container's background/border but hides the text content
+        el.style.color = 'transparent';
+        el.style.webkitTextFillColor = 'transparent';
+
+        // Also hide specific child elements that might contain text or images
+        // We want to keep the "Skeleton" (container styles), so we hide content
+        const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
+
+        el.querySelectorAll(contentTags.join(',')).forEach(child => {
+          // We use visibility: hidden for children to maintain layout but hide content
+          // However, for some structural divs (like a card header div), we might want to keep them visible if they have background?
+          // But usually, the component selector targets the container.
+          // If we hide all DIVs inside, we might hide inner containers.
+          // Let's be more specific: hide text-containing tags and images.
+          // If a DIV has a background image or color, it might be part of the skeleton.
+          // But distinguishing "content div" from "structure div" is hard.
+          // For now, let's rely on the text transparency for text, and explicitly hide Images/SVGs.
+          // And hide text-specific tags.
+
+          if (['IMG', 'SVG'].includes(child.tagName)) {
+            child.style.visibility = 'hidden';
+          } else if (['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION'].includes(child.tagName)) {
+            child.style.visibility = 'hidden';
+          }
+          // We do NOT hide DIVs blindly, to preserve inner structure (like grid layouts inside a card)
+          // The text inside DIVs will be hidden by the inherited color: transparent (or we set it on them too)
+          child.style.color = 'transparent';
+          child.style.webkitTextFillColor = 'transparent';
+        });
+      }
+    }, comp.id);
+
+    // 2. Screenshot the component
+    const elementHandle = await page.$(`#${comp.id}`);
+    if (elementHandle) {
+      const filename = `comp_${comp.id}_${Date.now()}.png`;
+      const savePath = path.join(tmpDir, filename);
+
+      // Capture with transparency
+      await elementHandle.screenshot({ path: savePath, omitBackground: true });
+
+      // Get position (re-evaluate to be safe)
+      const position = await page.evaluate((id) => {
+        const rect = document.getElementById(id).getBoundingClientRect();
+        const PT_PER_PX = 0.75;
+        const PX_PER_IN = 96;
+        return {
+          x: rect.left / PX_PER_IN,
+          y: rect.top / PX_PER_IN,
+          w: rect.width / PX_PER_IN,
+          h: rect.height / PX_PER_IN
+        };
+      }, comp.id);
+
+      components.push({
+        type: 'image',
+        path: savePath,
+        ...position
+      });
+    }
+
+    // 3. Restore text visibility (or just reload page later)
+    await page.evaluate((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.color = '';
+        el.style.webkitTextFillColor = '';
+
+        const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
+        el.querySelectorAll(contentTags.join(',')).forEach(child => {
+          child.style.visibility = '';
+          child.style.color = '';
+          child.style.webkitTextFillColor = '';
+        });
+      }
+    }, comp.id);
+  }
+
+  return components;
+}
+
+// Helper: Capture stand-alone SVGs and Images as transparent PNGs
+async function captureStandaloneImages(page, tmpDir) {
+  const images = [];
+
+  // Find all SVGs and IMGs that are NOT hidden (part of the visible slide)
+  const imageElements = await page.evaluate(() => {
+    const els = [];
+    document.querySelectorAll('svg, img').forEach((el, index) => {
+      // Skip if hidden
+      const style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+
+      // DO NOT skip images inside components - they need to be captured separately
+      // The component skeleton capture hides these images, so they won't be duplicated
+
+      if (!el.id) el.id = `pptx-img-${index}`;
+
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        els.push({
+          id: el.id,
+          width: rect.width,
+          height: rect.height
+        });
+      }
+    });
+    return els;
+  });
+
+  for (const img of imageElements) {
+    const elementHandle = await page.$(`#${img.id}`);
+    if (elementHandle) {
+      const filename = `img_${img.id}_${Date.now()}.png`;
+      const savePath = path.join(tmpDir, filename);
+
+      // Capture with transparency
+      await elementHandle.screenshot({ path: savePath, omitBackground: true });
+
+      const position = await page.evaluate((id) => {
+        const rect = document.getElementById(id).getBoundingClientRect();
+        const PT_PER_PX = 0.75;
+        const PX_PER_IN = 96;
+        return {
+          x: rect.left / PX_PER_IN,
+          y: rect.top / PX_PER_IN,
+          w: rect.width / PX_PER_IN,
+          h: rect.height / PX_PER_IN
+        };
+      }, img.id);
+
+      images.push({
+        type: 'image',
+        path: savePath,
+        ...position
+      });
+    }
+  }
+  return images;
 }
 
 async function html2pptx(htmlFile, pres, options = {}) {
@@ -488,9 +726,11 @@ async function html2pptx(htmlFile, pres, options = {}) {
     let bodyDimensions;
     let slideData;
     let backgroundPath;
+    let componentImages = [];
+    let standaloneImages = [];
 
     try {
-      const page = await browser.newPage();
+      const page = await browser.newPage({ deviceScaleFactor: 2 });
       await page.goto(`file://${filePath}`);
 
       // 1. Get dimensions and check overflow
@@ -500,37 +740,69 @@ async function html2pptx(htmlFile, pres, options = {}) {
         height: Math.round(bodyDimensions.height)
       });
 
-      // 2. Capture Background (Hybrid Rendering) at 2x resolution
-      // We use a separate high-res page for the screenshot to get true 2x pixel density
-      const highResPage = await browser.newPage({
-        deviceScaleFactor: 2
-      });
+      // 2. Capture Components (Skeleton Strategy)
+      // We capture specific UI elements as images (with text hidden)
+      componentImages = await captureComponents(page, tmpDir, htmlFile);
 
-      await highResPage.goto(`file://${filePath}`);
-      await highResPage.setViewportSize({
-        width: Math.round(bodyDimensions.width),
-        height: Math.round(bodyDimensions.height)
-      });
+      // 3. Capture Standalone Images (SVG & IMG)
+      standaloneImages = await captureStandaloneImages(page, tmpDir);
 
-      // Hide text elements on the high-res page
-      await highResPage.evaluate(() => {
-        const textTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A'];
-        const elements = document.querySelectorAll(textTags.join(','));
-        elements.forEach(el => {
+      // 4. Capture Global Background
+      // Hide EVERYTHING that is content (text, images, and the components we just captured)
+      await page.evaluate(() => {
+        const textTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'IMG', 'SVG', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION'];
+
+        // Hide basic content
+        document.querySelectorAll(textTags.join(',')).forEach(el => {
           el.style.opacity = '0';
+        });
+
+        // Auto-detect and hide components (same logic as captureComponents)
+        const hasVisualStyling = (el, computed) => {
+          if (el.tagName === 'BODY' || el.tagName === 'HTML') return false;
+          const hasBackground = computed.backgroundColor !== 'rgba(0, 0, 0, 0)' && computed.backgroundColor !== 'transparent';
+          const hasBackgroundImage = computed.backgroundImage !== 'none';
+          const hasBorder = computed.borderWidth !== '0px' || computed.borderTopWidth !== '0px';
+          const hasBoxShadow = computed.boxShadow !== 'none';
+          const hasBorderRadius = computed.borderRadius !== '0px';
+          const hasBackdropFilter = computed.backdropFilter !== 'none' || computed.webkitBackdropFilter !== 'none';
+          return hasBackground || hasBackgroundImage || hasBorder || hasBoxShadow ||
+            (hasBorderRadius && (hasBackground || hasBackgroundImage)) || hasBackdropFilter;
+        };
+
+        const isDecorativeElement = (el, computed) => {
+          const position = computed.position;
+          if (position !== 'absolute' && position !== 'fixed') return false;
+          return hasVisualStyling(el, computed);
+        };
+
+        const isSignificantSize = (rect) => {
+          return rect.width >= 60 && rect.height >= 60;
+        };
+
+        document.querySelectorAll('*').forEach(el => {
+          const computed = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+
+          if (rect.width === 0 || rect.height === 0) return;
+
+          const isTextElement = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I'].includes(el.tagName);
+          if (isTextElement && !hasVisualStyling(el, computed)) return;
+
+          const shouldHide = (hasVisualStyling(el, computed) && isSignificantSize(rect)) || isDecorativeElement(el, computed);
+
+          if (shouldHide) {
+            el.style.opacity = '0';
+          }
         });
       });
 
-      // Screenshot as PNG at 2x resolution (actual pixel dimensions will be 2x)
       const filename = `bg_${path.basename(htmlFile, '.html')}_${Date.now()}.png`;
       backgroundPath = path.join(tmpDir, filename);
-      await highResPage.screenshot({ path: backgroundPath, fullPage: false });
+      await page.screenshot({ path: backgroundPath, fullPage: false });
 
-      // Close high-res page
-      await highResPage.close();
-
-      // 3. Extract Text Data
-      // Restore opacity to extract correct styles/visibility (actually reload is safer/cleaner)
+      // 5. Extract Text Data
+      // Reload to get a clean state for text extraction
       await page.reload();
       slideData = await extractSlideData(page);
 
@@ -555,10 +827,32 @@ async function html2pptx(htmlFile, pres, options = {}) {
     // Create Slide
     const targetSlide = slide || pres.addSlide();
 
-    // Set Background Image
+    // Layer 1: Global Background
     targetSlide.background = { path: backgroundPath };
 
-    // Add Text Elements
+    // Layer 2: Components (Skeletons)
+    for (const comp of componentImages) {
+      targetSlide.addImage({
+        path: comp.path,
+        x: comp.x,
+        y: comp.y,
+        w: comp.w,
+        h: comp.h
+      });
+    }
+
+    // Layer 3: Standalone Images (SVG & IMG)
+    for (const img of standaloneImages) {
+      targetSlide.addImage({
+        path: img.path,
+        x: img.x,
+        y: img.y,
+        w: img.w,
+        h: img.h
+      });
+    }
+
+    // Layer 4: Text and Standalone Images
     addElements(slideData, targetSlide, pres);
 
     return { slide: targetSlide, placeholders: slideData.placeholders };

@@ -163,15 +163,43 @@ To maximize efficiency, you **MUST** execute asset generation tasks in parallel 
     *   Once assets are triggered, you can start writing `slide1.html`, `slide2.html`, etc., assuming the assets will be ready by the time the user renders them.
     *   *Note*: If you need to check the generated image path, you may need to wait, but generally, standard naming conventions allow you to write HTML blindly.
 
-#### Hybrid Rendering & Styling Mechanism
-The `html2pptx` workflow uses a **Hybrid Rendering** approach to ensure 100% visual fidelity:
-1.  **Background Capture**: The script hides all text elements and captures the entire slide (background images, CSS decorations, shapes) as a single high-resolution PNG image. This becomes the slide background.
-2.  **Text Overlay**: It then extracts text elements (p, h1-h6, li) and overlays them as editable PowerPoint text boxes on top of the background image.
+#### Hybrid Rendering & Styling Mechanism (3-Layer Strategy)
+
+The `html2pptx` workflow uses an advanced **3-Layer Hybrid Rendering** approach to achieve 100% visual fidelity while maintaining text editability:
+
+**Layer 1: Global Background**
+- Captures the pure slide background (gradients, patterns, textures)
+- All content (text, images, UI components) is hidden during this capture
+- Becomes the slide's background image in PPTX
+
+**Layer 2: Component Skeletons**
+- Identifies UI components (`.card`, `.box`, `.bento-item`, etc.)
+- Captures each component with text hidden but structure preserved
+- Creates transparent PNG "skeleton" images that maintain complex CSS styling
+- Inserted as images on top of the background layer
+
+**Layer 3: Editable Content**
+- All text elements extracted and inserted as editable PowerPoint text boxes
+- Standalone images (icons, photos) captured and positioned accurately
+- Layered on top of skeleton images to maintain visual hierarchy
+
+**High-Resolution Image Capture**:
+- All images (backgrounds, components, standalone) captured at **2x resolution** (`deviceScaleFactor: 2`)
+- Ensures crisp, Retina-quality visuals in the final PPTX
+
+**Advanced Text Extraction**:
+- **Leaf Node Detection**: Accurately identifies the deepest text-containing elements to avoid duplication
+- **Inline Formatting Preservation**: Maintains `<strong>`, `<em>`, `<span>` styling within text runs
+- **Line Break Handling**: `<br>` tags converted to proper line breaks without extra spacing
+- **Line Spacing Accuracy**: CSS `line-height` (including `normal` and multiplier values) precisely converted to PowerPoint points
+- **No Paragraph Spacing**: Text boxes positioned using absolute coordinates; internal spacing removed to match HTML layout exactly
 
 **Implications for Styling**:
-*   **Complex CSS (Blur, Gradients, Shadows)**: Apply these to background containers (divs). They will be baked into the background image and look perfect.
-*   **Text Containers**: Text containers themselves should generally be transparent. Do NOT apply borders or backgrounds to the specific `<p>` or `<h1>` tags if you want them editable, as the background capture handles the visual container.
-*   **No Borders**: Do NOT use borders on tables or content divs unless explicitly required for a specific chart style. The default should be borderless for a clean look.
+- **Complex CSS (Blur, Gradients, Shadows)**: Apply these to component containers (`.card`, `.box`). They will be baked into skeleton images.
+- **Text Styling**: Use standard HTML tags (`<p>`, `<h1>`, `<strong>`) with CSS. Text will be extracted with formatting intact.
+- **Images & Icons**: Use `<img>` tags with SVG or PNG sources. They will be captured as transparent PNGs at their rendered size.
+- **No Borders on Text Containers**: Borders should be on parent components, not on `<p>` or `<h1>` tags directly.
+- **Component-Based Design**: Wrap complex styled elements (cards, badges, boxes) in divs with specific classes to trigger skeleton capture.
 
 #### Managing Overflow: Critical Strategy
 
