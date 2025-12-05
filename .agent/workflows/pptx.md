@@ -201,16 +201,120 @@ The `html2pptx` workflow uses an advanced **3-Layer Hybrid Rendering** approach 
 - **No Borders on Text Containers**: Borders should be on parent components, not on `<p>` or `<h1>` tags directly.
 - **Component-Based Design**: Wrap complex styled elements (cards, badges, boxes) in divs with specific classes to trigger skeleton capture.
 
-#### Managing Overflow: Critical Strategy
+#### Overflow Prevention Strategy: Design from the Start (MANDATORY)
+
+**CRITICAL**: Building HTML slides with proper constraints from the beginning is far more efficient than fixing overflow errors later. Follow these rules:
+
+**Core Constraints:**
+| Item | Value |
+|------|-------|
+| Slide Size (16:9) | **720pt × 405pt** (= 960px × 540px @ 96 DPI) |
+| Recommended Bottom Margin | 0.5" (36pt) |
+| Actual Usable Height | ~**369pt** (~492px) |
+
+**1. Mandatory CSS Reset:**
+```css
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0;
+}
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Visual check for overflow */
+}
+```
+
+**2. Container Height Specification:**
+```css
+.container {
+  width: 100%;
+  height: 100%; /* MUST specify */
+  padding: 40pt;
+  display: flex;
+  flex-direction: column;
+}
+```
+
+**3. Content Area Constraint:**
+```css
+.content {
+  flex: 1;
+  overflow: hidden; /* Content beyond this will be clipped */
+  display: flex;
+  flex-direction: column;
+  gap: 16pt;
+}
+```
+
+**4. Conservative Font Sizing:**
+```css
+h1 { font-size: 28pt; margin-bottom: 16pt; }  /* Max 32pt */
+h2 { font-size: 20pt; margin-bottom: 12pt; }
+p { font-size: 11pt; line-height: 1.5; }       /* Body max 12pt */
+```
+
+**5. Optimized Bento Grid (2 Columns Preferred):**
+```css
+/* 2-column grid recommended (3 columns risk height overflow) */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12pt;
+  height: 100%;
+}
+
+.card {
+  padding: 14pt;
+  flex-direction: row; /* Horizontal layout (icon left, text right) */
+  align-items: flex-start;
+  gap: 12pt;
+}
+
+.icon {
+  width: 32pt;
+  height: 32pt;
+  flex-shrink: 0;
+}
+```
+
+**Recommended Workflow (Overflow Prevention):**
+```
+1. Write HTML
+     ↓
+2. IMMEDIATELY run check_overflow.js
+     ↓
+3. If overflow detected:
+   - Reduce font size (1-2pt)
+   - Reduce gap/margin (20%)
+   - Reduce icon size (48pt → 40pt → 32pt)
+   - Reduce line-height (1.6 → 1.5 → 1.4)
+     ↓
+4. Only proceed to next slide AFTER ✅ OK
+```
+
+#### Managing Overflow: Critical Strategy (Fixing Existing Issues)
 
 **When `html2pptx` reports overflow errors**, follow this systematic approach to fix them:
 
-**Priority 1: Reduce Icon/Image Sizes** (Fastest Fix)
+**Priority 1: Aggressive Font & Layout Scaling (Automated)**
+1. **Global Scaling**: Immediately reduce the base font size (e.g., in `body` or `.container`) from 100% to 95%, then 90%.
+2. **Granular Adjustment**: Reduce specific text elements:
+   - Headings (`h1`): Reduce by 2-4pt.
+   - Body text (`p`, `li`): Reduce by 1-2pt (minimum 8pt).
+   - **Algorithm**: `while (overflow > 0) { fontSize -= 0.5pt; gap -= 2pt; margin -= 2pt; }`
+3. **Vertical Compression**: Reduce `margin-bottom` of headings and `gap` in flex/grid containers by 20-30%.
+
+**Priority 2: Reduce Icon/Image Sizes**
 1. **Icons**: Reduce from 48pt → 40pt → 32pt → 28pt as needed
 2. **Product Images**: Scale down width/height by 10-15%
 3. **Decorative Elements**: Remove or significantly reduce blur effects that expand element boundaries
 
-**Priority 2: Optimize Bento Grid Layout**
+**Priority 3: Optimize Bento Grid Layout**
 - **Switch Grid Orientation**: Change `3x2` (3 columns, 2 rows) → `2x3` (2 columns, 3 rows) to reduce vertical height
 - **Horizontal Layout**: For cards, switch from vertical `flex-direction: column` to horizontal `flex-direction: row` with icon on the left
 - **Compact Grid Gaps**: Reduce `gap: 20pt` → `16pt` → `12pt` → `10pt`
@@ -242,20 +346,21 @@ The `html2pptx` workflow uses an advanced **3-Layer Hybrid Rendering** approach 
   margin-bottom: 16pt;
 }
 
-/* AFTER (Fits perfectly) */
+/* AFTER (Fits perfectly - Horizontal First Strategy) */
 .grid {
   grid-template-columns: 1fr 1fr;  /* 2 columns */
   gap: 12pt;
 }
 .card {
   padding: 14pt;
-  flex-direction: row;  /* Horizontal layout */
+  flex-direction: row;  /* Horizontal layout (Icon Left + Text Right) */
+  align-items: flex-start;
   gap: 12pt;
 }
 .icon {
   width: 32pt;  /* Reduced */
   height: 32pt;
-  margin-bottom: 0;  /* Not needed in horizontal layout */
+  flex-shrink: 0; /* Prevent icon shrinking */
 }
 ```
 
@@ -284,24 +389,31 @@ Achieve a premium look through **subtle textures**, **perfect typography**, and 
 }
 ```
 
-**2. The "Bento Box" Grid Layout**
-Use CSS Grid to create sophisticated, dashboard-style layouts.
+**2. Detailed Bento Grid (Horizontal First)**
+Use highly detailed, dashboard-style layouts. Prioritize **Horizontal Layouts** (Left-to-Right) over vertical stacks to save vertical space and improve readability.
 
 ```css
 .bento-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24pt;
+  grid-template-columns: repeat(3, 1fr); /* 3 Columns for high density */
+  gap: 16pt;
   height: 100%;
 }
 .bento-item {
-  /* Very subtle background for structure without visual weight */
-  background: rgba(255, 255, 255, 0.5); 
-  border-radius: 20pt;
-  padding: 30pt;
+  background: rgba(255, 255, 255, 0.6); 
+  border-radius: 16pt;
+  padding: 20pt;
+  display: flex;
+  flex-direction: row; /* HORIZONTAL PREFERENCE */
+  align-items: flex-start;
+  gap: 16pt;
+  border: 1px solid rgba(255, 255, 255, 0.4); /* Subtle border details */
+}
+/* Detailed content structure inside bento item */
+.item-content {
   display: flex;
   flex-direction: column;
-  border: none;
+  gap: 4pt;
 }
 ```
 
@@ -346,6 +458,8 @@ p {
 - **Clean Charts**: Remove gridlines, remove axis lines, direct label data points.
 
 **Image Styling Guidelines**:
+- **Width Limit (CRITICAL)**: Images should generally **NOT exceed 1/3 (33%)** of the slide's total width. This ensures sufficient space for detailed text and prevents layout imbalance.
+  - *Exception*: Full-bleed background images or specific "Visual Only" slides.
 - **Rounded Corners**: Apply `border-radius: 12px` (approx. 9pt) to images for a modern, friendly look.
 - **Aspect Ratio**: Always use `object-fit: cover` for content images to ensure they fill their container without distortion. **NEVER use `object-fit: contain` for content images** as it leaves empty space.
 - **Icon Reset**: Explicitly set `object-fit: contain` for icons to prevent them from being cropped.
@@ -367,7 +481,10 @@ p {
 
 ### Layout Tips
 **When creating slides with charts or tables:**
-- **Two-column layout (PREFERRED)**: Use a header spanning the full width, then two columns below - text/bullets in one column and the featured content in the other. This provides better balance and makes charts/tables more readable. Use flexbox with unequal column widths (e.g., 40%/60% split) to optimize space for each content type.
+- **Horizontal Layout (MANDATORY)**: Always prioritize a Left-to-Right flow.
+  - **Left (60-70%)**: Detailed Text, Bullet Points, Explanations.
+  - **Right (30-40%)**: Image, Chart, or Visual (Max 1/3 width preferred).
+- **Two-column layout (PREFERRED)**: Use a header spanning the full width, then two columns below.
 - **Full-slide layout**: Let the featured content (chart/table) take up the entire slide for maximum impact and readability
 - **NEVER vertically stack**: Do not place charts/tables below text in a single column - this causes poor readability and layout issues
 
@@ -441,10 +558,15 @@ p {
    - **Global Reset**: Include `* { box-sizing: border-box; }` in your CSS.
    - **Reference Assets**: Use relative paths to your generated images (e.g., `background-image: url('../images/aurora_bg.png')`).
    - **Consistent Padding**: Ensure all slides have a consistent internal padding (e.g., `padding: 40px` or `5%`) on the main container to prevent content from touching the edges.
-   - **Dimension Check (Anti-Overflow)**:
-     - The target PPTX slide size is typically **10 inches x 5.625 inches** (16:9).
-     - **Check Height**: Before finalizing, verify that the calculated height of your HTML content does not exceed the slide height.
-     - **Adjust**: If content risks overflowing, reduce font sizes, adjust line-heights, or simplify content *in the HTML phase* to avoid "overfit" errors during conversion.
+   - **Iterative Validation Workflow (MANDATORY)**:
+     - **Step 1**: Write HTML for a single slide (e.g., `slide1.html`).
+     - **Step 2**: IMMEDIATELY run `node check_overflow.js` to validate dimensions.
+     - **Step 3**: If overflow detected:
+       - Apply **Priority 1 fixes** (Font/Layout Scaling).
+       - Re-run `node check_overflow.js`.
+       - Repeat until `✅ OK`.
+     - **Step 4**: Only AFTER validation passes, proceed to write the next slide (`slide2.html`).
+     - **Rationale**: Fixing issues one by one is much more efficient than fixing 10 slides at the end.
    - Use `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>` for all text content
    - Use `class="placeholder"` for areas where charts/tables will be added (render with gray background for visibility)
    - **CRITICAL**: Rasterize icons as PNG images FIRST using Sharp, then reference in HTML
@@ -473,6 +595,37 @@ p {
      - **Contrast issues**: Insufficient contrast between text and backgrounds
    - If issues found, adjust HTML margins/spacing/colors and regenerate the presentation
    - Repeat until all slides are visually correct
+
+### Step 6: (Optional) Create Web Viewer
+
+To provide a quick way to view the presentation in a browser without generating the PPTX, create a premium `index.html` web viewer.
+
+**Use the Web Viewer Template:**
+- **Template Location**: `.agent/workflows/skills/pptx/templates/web_viewer_template.html`
+- Copy this template to `workspace/[project_name]/index.html` and customize.
+
+**Key Features**:
+- **Premium Dark Theme**: Sleek, dark background with subtle gradients and glassmorphism effects
+- **Floating Navigation**: Semi-transparent bottom-center navigation bar with blur backdrop
+- **Smooth Animations**: Fade transitions, hover effects, and micro-interactions
+- **Progress Indicator**: Bottom progress bar showing current position
+- **Keyboard Support**: Arrow keys and Space for navigation
+- **Fullscreen Mode**: Toggle fullscreen with button or F key
+- **Responsive Scaling**: Automatically fits 16:9 slides to any screen size
+- **Touch Gestures**: Swipe left/right on touch devices
+
+**Template Variables to Replace:**
+- `{{PROJECT_NAME}}`: Replace with your project title
+- `{{SLIDES_LIST}}`: Replace with JavaScript array of slide HTML content (inline)
+
+**Alternative**: If generating a standalone viewer, inline all slide HTML content using:
+```javascript
+const slides = [
+  `<!DOCTYPE html>...slide1 content...`,
+  `<!DOCTYPE html>...slide2 content...`,
+  // ...
+];
+```
 
 ## Editing an existing PowerPoint presentation
 
@@ -798,6 +951,83 @@ Required dependencies (should already be installed):
 - **Poppler**: `sudo apt-get install poppler-utils` (for pdftoppm to convert PDF to images)
 
 #### macOS
+- **LibreOffice**: `brew install --cask libreoffice` (for PDF conversion)
+- **Poppler**: `brew install poppler` (for pdftoppm to convert PDF to images)
+
+## Appendix: Helper Scripts
+
+### `check_overflow.js` Template
+Use this script to pre-validate HTML slides before conversion.
+
+```javascript
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+async function checkOverflow(directory) {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    // PPTX 16:9 Slide Size: 10" x 5.625"
+    // At 96 DPI: 960px x 540px
+    await page.setViewportSize({ width: 960, height: 540 });
+
+    const files = fs.readdirSync(directory).filter(f => f.endsWith('.html')).sort();
+    
+    console.log('=== Checking for overflow ===\n');
+    
+    let hasOverflow = false;
+    const results = [];
+    
+    for (const file of files) {
+        const filePath = path.join(directory, file);
+        const fileUrl = `file://${filePath}`;
+        
+        await page.goto(fileUrl);
+        await page.waitForLoadState('networkidle');
+
+        const dimensions = await page.evaluate(() => {
+            return {
+                scrollHeight: document.body.scrollHeight,
+                offsetHeight: document.body.offsetHeight,
+                clientHeight: document.body.clientHeight
+            };
+        });
+
+        const targetHeight = 540;
+        const isOverflowing = dimensions.scrollHeight > targetHeight;
+        
+        if (isOverflowing) {
+            const overflowAmount = dimensions.scrollHeight - targetHeight;
+            const overflowPt = (overflowAmount * 72 / 96).toFixed(1); // Convert px to pt
+            console.error(`❌ OVERFLOW: ${file}`);
+            console.error(`   Height: ${dimensions.scrollHeight}px (Limit: ${targetHeight}px)`);
+            console.error(`   Excess: ${overflowAmount}px (${overflowPt}pt)`);
+            console.error(`   → Reduce font-size, padding, or margins\n`);
+            hasOverflow = true;
+            results.push({ file, overflow: overflowPt });
+        } else {
+            const headroom = targetHeight - dimensions.scrollHeight;
+            console.log(`✅ OK: ${file} (${dimensions.scrollHeight}px, headroom: ${headroom}px)`);
+        }
+    }
+
+    await browser.close();
+    
+    console.log('\n=== Summary ===');
+    if (hasOverflow) {
+        console.error(`\n⚠️  ${results.length} slide(s) have overflow issues:`);
+        results.forEach(r => console.error(`   - ${r.file}: ${r.overflow}pt overflow`));
+        console.error('\nPlease fix these before generating PPTX.\n');
+        process.exit(1);
+    } else {
+        console.log('\n✅ All slides fit within bounds!\n');
+    }
+}
+
+// Usage: node check_overflow.js ./assets/slides
+const slidesDir = process.argv[2] || path.join(__dirname, 'assets/slides');
+checkOverflow(slidesDir).catch(console.error);
+```
 - **LibreOffice**: `brew install --cask libreoffice` (for PDF conversion)
   - Provides `soffice` command for PPTX to PDF conversion
 - **Poppler**: `brew install poppler` (for pdftoppm to convert PDF to images)

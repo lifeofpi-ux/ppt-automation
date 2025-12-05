@@ -47,6 +47,11 @@ Every HTML slide must include proper body dimensions:
 - ✅ Web-safe fonts: `Arial`, `Helvetica`, `Times New Roman`, `Georgia`, `Courier New`, `Verdana`, `Tahoma`, `Trebuchet MS`, `Impact`, `Comic Sans MS`
 - ❌ Wrong: `'Segoe UI'`, `'SF Pro'`, `'Roboto'`, custom fonts - **Might cause rendering issues**
 
+**NEVER use OS default emojis (🎉, 📊, ✨, etc.) in slide content:**
+- ❌ Emojis render differently across operating systems and may appear as squares or incorrect symbols in PowerPoint
+- ✅ Instead, use **PNG icons** generated from `react-icons` (Phosphor Duotone) for visual indicators
+- ✅ If you need emoji-like symbols, rasterize them to PNG images first using the icon generation script
+
 ### Styling
 
 - **Global Reset**: ALWAYS include `* { box-sizing: border-box; }` to prevent padding from causing overflow
