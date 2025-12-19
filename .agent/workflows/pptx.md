@@ -371,6 +371,13 @@ p { font-size: 11pt; line-height: 1.5; }       /* Body max 12pt */
 **1. Sophisticated Minimalist Aesthetic**
 Achieve a premium look through **subtle textures**, **perfect typography**, and **generous whitespace**. Avoid harsh contrasts; use soft, harmonious color palettes.
 
+**CRITICAL: modernized Card Design (The "Sample" Style)**
+Instead of outdated "thick colored borders" (e.g., `border-left: 5px solid color`), use **Soft Shadow Cards**.
+- **PROHIBITED**: `border-left: 4pt solid ...`, `border-bottom: 5px solid ...`, or any thick, crude borders.
+- **Concept**: A "floating" white card on a soft gray/colored background.
+- **Reference**: High rounded corners, soft diffused shadow, no visible border lines.
+- **Accents**: Use text color or small, subtle indicators (e.g., icons, tags) for color accents, NOT thick lines.
+
 ```css
 /* Sophisticated Theme Variables */
 :root {
@@ -378,14 +385,33 @@ Achieve a premium look through **subtle textures**, **perfect typography**, and 
   --text-primary: #1D1D1F;  /* Soft Black (Apple Style) */
   --text-secondary: #86868B;
   --accent-color: #0066CC;  /* Refined Blue */
+  --card-bg: #FFFFFF;
 }
 
-/* Clean, Borderless Containers */
-.content-card {
-  background: transparent;
-  border: none;            /* NO BORDERS */
-  padding: 0;
-  box-shadow: none;
+/* Premium Feature Card (Replaces Thick Border Styles) */
+.feature-card {
+  background: var(--card-bg);
+  border-radius: 18pt;      /* Highly rounded corners (24px) */
+  padding: 24pt;            /* Generous padding */
+  /* Premium Shadow: Soft ambient + crisp directional */
+  box-shadow: 0 12pt 36pt rgba(0,0,0,0.06), 0 4pt 12pt rgba(0,0,0,0.03);
+  border: none;             /* NO BORDERS */
+  display: flex;
+  flex-direction: column;
+  gap: 12pt;
+  transition: transform 0.2s ease;
+}
+
+/* Optional: Icon container within card */
+.card-icon-box {
+  width: 40pt;
+  height: 40pt;
+  background: #F2F2F7;
+  border-radius: 50%;       /* Circular icon backing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8pt;
 }
 ```
 
@@ -400,14 +426,15 @@ Use highly detailed, dashboard-style layouts. Prioritize **Horizontal Layouts** 
   height: 100%;
 }
 .bento-item {
-  background: rgba(255, 255, 255, 0.6); 
+  background: rgba(255, 255, 255, 0.7); /* Glass-like opacity */
   border-radius: 16pt;
   padding: 20pt;
   display: flex;
   flex-direction: row; /* HORIZONTAL PREFERENCE */
   align-items: flex-start;
   gap: 16pt;
-  border: 1px solid rgba(255, 255, 255, 0.4); /* Subtle border details */
+  box-shadow: 0 4pt 16pt rgba(0,0,0,0.04);
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Subtle border details, NOT thick */
 }
 /* Detailed content structure inside bento item */
 .item-content {

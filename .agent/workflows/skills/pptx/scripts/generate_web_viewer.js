@@ -65,7 +65,8 @@ const projectName = path.basename(projectPath);
 
 // Use Regex to handle optional spaces: {{SLIDES_LIST}} or {{ SLIDES_LIST }}
 template = template.replace(/\{\{\s*PROJECT_NAME\s*\}\}/g, projectName);
-template = template.replace(/\{\{\s*SLIDES_LIST\s*\}\}/g, slidesListString);
+// Replace {{ SLIDES_LIST }} handling both quoted (for valid JS syntax in template) and unquoted versions
+template = template.replace(/["']\{\{\s*SLIDES_LIST\s*\}\}["']|\{\{\s*SLIDES_LIST\s*\}\}/g, slidesListString);
 
 // Update template to use srcdoc instead of src (if not already updated in template)
 template = template.replace('frame.src = slides[currentIndex];', 'frame.srcdoc = slides[currentIndex];');
