@@ -4,247 +4,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{PROJECT_NAME}} - Presentation</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>{{PROJECT_NAME}} - Web Viewer</title>
     <style>
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --accent-color: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --text-primary: rgba(255, 255, 255, 0.95);
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --bg-color: #050505;
+            --accent-color: #00F0FF;
+            --text-color: #ffffff;
+            --panel-bg: rgba(20, 20, 20, 0.8);
         }
 
         body,
         html {
+            margin: 0;
+            padding: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-primary);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Ambient background gradient */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
-                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.1), transparent),
-                radial-gradient(ellipse 50% 30% at 0% 100%, rgba(59, 130, 246, 0.08), transparent);
-            pointer-events: none;
-            z-index: 0;
+        /* Main Stage Area */
+        #stage {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2000px;
+            overflow: auto;
+            /* Allow scrolling when zoomed in */
+            position: relative;
         }
 
         #slide-container {
+            width: 960px;
+            /* Base Width (720pt * 1.33) */
+            height: 540px;
+            /* Base Height (405pt * 1.33) */
             position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
         }
 
         iframe {
-            width: 960px;
-            height: 540px;
+            width: 100%;
+            height: 100%;
             border: none;
-            background: transparent;
-            border-radius: 12px;
-            box-shadow:
-                0 25px 80px -12px var(--shadow-color),
-                0 0 0 1px rgba(255, 255, 255, 0.05);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.4s ease,
-                opacity 0.3s ease-in-out;
-            transform-origin: center;
-            opacity: 1;
+            background: white;
+            border-radius: 8px;
+            /* Smooth corners */
+            display: block;
         }
 
-        iframe.fade-out {
-            opacity: 0;
-        }
-
-        iframe:hover {
-            box-shadow:
-                0 35px 100px -15px var(--shadow-color),
-                0 0 0 1px rgba(255, 255, 255, 0.08),
-                0 0 60px -10px var(--accent-glow);
-        }
-
-        /* Navigation Controls - Bottom Center */
+        /* Floating Control Bar */
         .controls {
             position: fixed;
-            bottom: 32px;
+            bottom: 30px;
             left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--glass-bg);
-            padding: 12px 20px;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 24px;
             border-radius: 50px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 100;
-            box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
         }
 
-        body:hover .controls,
-        .controls:focus-within {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+        .controls:hover {
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
-        .controls button {
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            padding: 0 12px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            /* Ensure vertical center alignment */
+        }
+
+        .btn-group:last-child {
+            border-right: none;
+        }
+
+        button {
             background: transparent;
             border: none;
-            color: var(--text-secondary);
+            color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            font-size: 16px;
-            width: 40px;
-            height: 40px;
+            padding: 8px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.25s ease;
-            position: relative;
+            transition: all 0.2s;
         }
 
-        .controls button:hover {
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.1);
+        button:hover {
+            color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.05);
             transform: scale(1.1);
         }
 
-        .controls button:active {
+        button:active {
             transform: scale(0.95);
         }
 
-        .controls button.nav-btn {
-            width: 44px;
-            height: 44px;
-            font-size: 18px;
-        }
-
-        .controls button.nav-btn:hover {
-            background: var(--accent-color);
-            color: white;
-            box-shadow: 0 4px 20px var(--accent-glow);
-        }
-
-        /* Slide Counter in Controls */
-        .slide-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 12px;
-            border-left: 1px solid var(--glass-border);
-            border-right: 1px solid var(--glass-border);
-            margin: 0 4px;
-        }
-
-        .slide-counter {
-            color: var(--text-primary);
+        .page-indicator {
+            font-variant-numeric: tabular-nums;
             font-size: 14px;
             font-weight: 500;
-            letter-spacing: -0.01em;
-            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.9);
+            min-width: 60px;
+            text-align: center;
         }
 
-        .slide-counter .current {
-            color: var(--accent-color);
-            font-weight: 600;
+        /* Icons */
+        svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
         }
 
-        .slide-counter .separator {
-            color: var(--text-secondary);
-            margin: 0 4px;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.05);
-            z-index: 99;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-color), #8b5cf6);
-            width: 0%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        /* Keyboard Hints */
-        .keyboard-hint {
-            position: fixed;
-            bottom: 100px;
+        /* Loader */
+        .loader {
+            position: absolute;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 24px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 10;
         }
 
-        body:hover .keyboard-hint {
-            opacity: 0.4;
-        }
-
-        .hint-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .hint-key {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 11px;
-        }
-
-        /* Fade transition is handled via opacity in iframe styles */
-
-        /* Touch feedback */
-        @media (hover: none) {
-            .controls {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
             }
         }
     </style>
@@ -252,192 +167,180 @@
 
 <body>
 
-    <div id="slide-container">
-        <iframe id="slide-frame" src=""></iframe>
+    <div id="stage">
+        <div id="slide-container">
+            <div class="loader" id="loader"></div>
+            <iframe id="viewer" src=""></iframe>
+        </div>
     </div>
 
+    <!-- Control Panel -->
     <div class="controls">
-        <button class="nav-btn" onclick="prevSlide()" title="Previous (←)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
-
-        <div class="slide-info">
-            <div class="slide-counter">
-                <span class="current" id="current-slide">1</span>
-                <span class="separator">/</span>
-                <span id="total-slides">0</span>
-            </div>
+        <!-- Navigation -->
+        <div class="btn-group">
+            <button onclick="prevSlide()" title="Previous (Left Arrow)">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span class="page-indicator" id="page-num">1 / --</span>
+            <button onclick="nextSlide()" title="Next (Right Arrow)">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
         </div>
 
-        <button class="nav-btn" onclick="nextSlide()" title="Next (→)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-        </button>
-
-        <button onclick="toggleFullScreen()" title="Fullscreen (F)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <polyline points="9 21 3 21 3 15"></polyline>
-                <line x1="21" y1="3" x2="14" y2="10"></line>
-                <line x1="3" y1="21" x2="10" y2="14"></line>
-            </svg>
-        </button>
-    </div>
-
-    <div class="keyboard-hint">
-        <div class="hint-item">
-            <span class="hint-key">←</span>
-            <span>Previous</span>
+        <!-- Zoom -->
+        <div class="btn-group">
+            <button onclick="zoomOut()" title="Zoom Out (-)">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
+            <button onclick="resetZoom()" title="Fit to Screen (0)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+                </svg>
+            </button>
+            <button onclick="zoomIn()" title="Zoom In (+)">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
         </div>
-        <div class="hint-item">
-            <span class="hint-key">→</span>
-            <span>Next</span>
-        </div>
-        <div class="hint-item">
-            <span class="hint-key">F</span>
-            <span>Fullscreen</span>
-        </div>
-    </div>
 
-    <div class="progress-container">
-        <div class="progress-bar" id="progress-bar"></div>
+        <!-- System -->
+        <div class="btn-group">
+            <button onclick="toggleFullscreen()" title="Fullscreen (F)">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                    </path>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <script>
-        // Inject slides list dynamically
-        const slides = "{{ SLIDES_LIST }}";
-        let currentIndex = 0;
-        let touchStartX = 0;
+        // === CONFIGURATION ===
+        // Note: Template variables are strings to avoid JS syntax errors in the template file
+        const TOTAL_SLIDES = Number('{{TOTAL_SLIDES}}') || 6;
+        const SLIDE_PREFIX = 'assets/slides/slide';
+        // ======================
 
-        const frame = document.getElementById('slide-frame');
-        const currentEl = document.getElementById('current-slide');
-        const totalEl = document.getElementById('total-slides');
-        const progressEl = document.getElementById('progress-bar');
+        let currentSlide = 1;
+        let scale = 1;
+        const container = document.getElementById('slide-container');
+        const iframe = document.getElementById('viewer');
+        const pageNum = document.getElementById('page-num');
+        const loader = document.getElementById('loader');
 
-        function init() {
-            totalEl.textContent = slides.length;
-            loadSlide(0);
-            resizeIframe();
-            window.addEventListener('resize', resizeIframe);
-            window.addEventListener('keydown', handleKeydown);
-
-            // Touch events for swipe
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
-        }
-
-        let isTransitioning = false;
+        // Initial Load
+        window.onload = () => {
+            loadSlide(1);
+            fitToScreen();
+            window.addEventListener('resize', fitToScreen);
+        };
 
         function loadSlide(index) {
-            if (index < 0) index = 0;
-            if (index >= slides.length) index = slides.length - 1;
-            if (index === currentIndex && frame.srcdoc) return;
-            if (isTransitioning) return;
+            if (index < 1 || index > TOTAL_SLIDES) return;
 
-            isTransitioning = true;
+            loader.style.display = 'block';
+            currentSlide = index;
+            pageNum.innerText = `${currentSlide} / ${TOTAL_SLIDES}`;
 
-            // Fade out
-            frame.classList.add('fade-out');
+            // Fade out effect
+            iframe.style.opacity = '0.5';
 
-            setTimeout(() => {
-                // Change slide
-                currentIndex = index;
-                frame.srcdoc = slides[currentIndex];
+            iframe.onload = () => {
+                iframe.style.opacity = '1';
+                loader.style.display = 'none';
+            };
 
-                // Update UI
-                currentEl.textContent = currentIndex + 1;
-                const progress = ((currentIndex + 1) / slides.length) * 100;
-                progressEl.style.width = `${progress}%`;
-
-                // Fade in
-                setTimeout(() => {
-                    frame.classList.remove('fade-out');
-                    setTimeout(() => {
-                        isTransitioning = false;
-                    }, 300);
-                }, 50);
-            }, 300);
+            iframe.src = `${SLIDE_PREFIX}${index}.html`;
+            iframe.style.transition = 'opacity 0.2s';
         }
 
-        function nextSlide() {
-            loadSlide(currentIndex + 1);
+        function nextSlide() { loadSlide(currentSlide + 1); }
+        function prevSlide() { loadSlide(currentSlide - 1); }
+
+        // --- ZOOM & FIT LOGIC ---
+        function setScale(newScale) {
+            scale = newScale;
+            container.style.transform = `scale(${scale})`;
         }
 
-        function prevSlide() {
-            loadSlide(currentIndex - 1);
+        function zoomIn() { setScale(scale + 0.1); }
+        function zoomOut() { setScale(Math.max(0.2, scale - 0.1)); }
+
+        function resetZoom() { fitToScreen(); }
+
+        function fitToScreen() {
+            // Base size of slide (720pt x 405pt = 960px x 540px)
+            const baseW = 960;
+            const baseH = 540;
+
+            // Reduce padding to maximize size
+            // Controls occupy approx 60-70px at bottom. 
+            // We leave just enough space so controls don't overlap slide content significantly.
+            const paddingBottom = 70;
+            const horizontalPadding = 20;
+
+            const availableW = window.innerWidth - horizontalPadding;
+            const availableH = window.innerHeight - paddingBottom;
+
+            const scaleW = availableW / baseW;
+            const scaleH = availableH / baseH;
+
+            // Fit containment, remove arbitrary max limit to allow full screen filling
+            setScale(Math.min(scaleW, scaleH));
         }
 
-        function handleKeydown(e) {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault();
-                nextSlide();
-            }
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                prevSlide();
-            }
-            if (e.key === 'f' || e.key === 'F') {
-                toggleFullScreen();
-            }
-            if (e.key === 'Home') {
-                loadSlide(0);
-            }
-            if (e.key === 'End') {
-                loadSlide(slides.length - 1);
-            }
-        }
-
-        function handleTouchStart(e) {
-            touchStartX = e.changedTouches[0].screenX;
-        }
-
-        function handleTouchEnd(e) {
-            const touchEndX = e.changedTouches[0].screenX;
-            const diff = touchStartX - touchEndX;
-
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) {
-                    nextSlide();
-                } else {
-                    prevSlide();
-                }
-            }
-        }
-
-        function toggleFullScreen() {
+        // --- FULLSCREEN ---
+        function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
             }
         }
 
-        function resizeIframe() {
-            const container = document.getElementById('slide-container');
-            const targetRatio = 16 / 9;
-            const containerRatio = container.clientWidth / container.clientHeight;
-
-            let scale;
-            if (containerRatio > targetRatio) {
-                // Container is wider than 16:9 -> Fit to height with padding
-                scale = (container.clientHeight * 0.85) / 540;
-            } else {
-                // Container is taller than 16:9 -> Fit to width with padding
-                scale = (container.clientWidth * 0.9) / 960;
+        // --- KEYBOARD CONTROLS ---
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowRight':
+                case ' ':
+                case 'Enter':
+                case 'PageDown':
+                    nextSlide(); break;
+                case 'ArrowLeft':
+                case 'PageUp':
+                case 'Backspace':
+                    prevSlide(); break;
+                case 'f': toggleFullscreen(); break;
+                case '+':
+                case '=': zoomIn(); break;
+                case '-': zoomOut(); break;
+                case '0': resetZoom(); break;
             }
+        });
 
-            frame.style.transform = `scale(${scale})`;
-        }
-
-        init();
+        // --- SCROLL WHEEL ZOOM (Optional) ---
+        /*
+        document.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) zoomIn();
+                else zoomOut();
+            }
+        }, { passive: false });
+        */
     </script>
 </body>
 

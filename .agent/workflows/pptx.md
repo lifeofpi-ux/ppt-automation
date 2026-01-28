@@ -623,13 +623,13 @@ p {
    - If issues found, adjust HTML margins/spacing/colors and regenerate the presentation
    - Repeat until all slides are visually correct
 
-### Step 6: (Optional) Create Web Viewer
+### Step 6: (Essential) Create Web Viewer
 
-To provide a quick way to view the presentation in a browser without generating the PPTX, create a premium `index.html` web viewer.
+**MANDATORY**: To provide immediate verification and a premium delivery experience, you **MUST** create a web-based viewer for every presentation project.
 
 **Use the Web Viewer Template:**
 - **Template Location**: `.agent/workflows/skills/pptx/templates/web_viewer_template.html`
-- Copy this template to `workspace/[project_name]/index.html` and customize.
+- **Action**: Copy this template to `workspace/[project_name]/index.html` and customize it.
 
 **Key Features**:
 - **Premium Dark Theme**: Sleek, dark background with subtle gradients and glassmorphism effects
@@ -644,6 +644,12 @@ To provide a quick way to view the presentation in a browser without generating 
 **Template Variables to Replace:**
 - `{{PROJECT_NAME}}`: Replace with your project title
 - `{{SLIDES_LIST}}`: Replace with JavaScript array of slide HTML content (inline)
+
+**Alternative (Iframe Approach)**: 
+If simple integration is preferred, use the Iframe approach (as demonstrated in previous steps):
+1. Create `index.html`
+2. Use an `<iframe>` to load `assets/slides/slide1.html`
+3. Implement JavaScript logic to switch the `src` attribute of the iframe to navigate between slides.
 
 **Alternative**: If generating a standalone viewer, inline all slide HTML content using:
 ```javascript
