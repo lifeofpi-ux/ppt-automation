@@ -1,0 +1,452 @@
+/*
+ * The Verge Editorial — Shared PPTX Slide Theme
+ * -----------------------------------------------
+ * Copy to workspace/[project]/assets/css/verge.css
+ * Then link in each slide HTML: <link rel="stylesheet" href="../css/verge.css">
+ *
+ * Slide canvas: 720pt × 405pt (960px × 540px)
+ * Design system inspired by The Verge 2024 redesign.
+ */
+
+/* ─── Reset ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  overflow: hidden;
+  background: #131313;
+  color: #ffffff;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ─── CSS Custom Properties ─────────────────────────────── */
+:root {
+  /* Colors */
+  --canvas:       #131313;
+  --surface:      #2d2d2d;
+  --frame:        #313131;
+  --mint:         #3cffd0;
+  --mint-border:  #309875;
+  --violet:       #5200ff;
+  --violet-dark:  #3d00bf;
+  --link-hover:   #3860be;
+  --white:        #ffffff;
+  --black:        #000000;
+  --text-primary: #ffffff;
+  --text-sec:     #949494;
+  --text-muted:   #e9e9e9;
+  --yellow:       #ffe000;
+  --pink:         #ff3d9a;
+  --orange:       #ff6b1a;
+
+  /* Radii */
+  --r-tag:     1.5pt;
+  --r-image:   2.25pt;
+  --r-card:    15pt;
+  --r-feature: 18pt;
+  --r-promo:   22.5pt;
+  --r-pill:    30pt;
+
+  /* Typography */
+  --ff-display: Impact, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --ff-sans:    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --ff-mono:    'Courier New', Courier, monospace;
+  --ff-serif:   Georgia, 'Times New Roman', serif;
+}
+
+/* ─── Base Layout ───────────────────────────────────────── */
+.v-container {
+  width: 100%;
+  height: 100%;
+  padding: 30pt 36pt 28pt;
+  display: flex;
+  flex-direction: column;
+}
+
+.v-container--row {
+  flex-direction: row;
+  gap: 16pt;
+  padding: 28pt 32pt;
+}
+
+/* ─── Typography ────────────────────────────────────────── */
+
+/* Hero Display — Impact at 52–72pt */
+.v-hero {
+  font-family: var(--ff-display);
+  font-size: 60pt;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 0.90;
+  letter-spacing: 0.8px;
+}
+.v-hero--xl { font-size: 68pt; }
+.v-hero--lg { font-size: 52pt; }
+.v-hero--sm { font-size: 40pt; }
+
+/* Section Title — PolySans Large */
+.v-title {
+  font-family: var(--ff-sans);
+  font-size: 24pt;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.0;
+}
+.v-title--sm { font-size: 20pt; }
+
+/* Eyebrow — thin-weight UPPERCASE, signature Verge whisper */
+.v-eyebrow {
+  font-family: var(--ff-sans);
+  font-size: 9pt;
+  font-weight: 300;
+  color: var(--text-sec);
+  text-transform: uppercase;
+  letter-spacing: 1.9px;
+}
+
+/* Kicker / Mono Label — PolySans Mono UPPERCASE */
+.v-kicker {
+  font-family: var(--ff-mono);
+  font-size: 7.5pt;
+  font-weight: 600;
+  color: var(--mint);
+  text-transform: uppercase;
+  letter-spacing: 1.35px;
+}
+
+/* Body copy */
+.v-body {
+  font-family: var(--ff-sans);
+  font-size: 10pt;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.v-body--compact {
+  font-size: 8.5pt;
+  color: var(--text-sec);
+  line-height: 1.5;
+}
+
+/* Card Headline */
+.v-card-title {
+  font-family: var(--ff-sans);
+  font-size: 13pt;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.05;
+}
+
+/* Mono timestamp */
+.v-timestamp {
+  font-family: var(--ff-mono);
+  font-size: 7pt;
+  font-weight: 600;
+  color: var(--text-sec);
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  white-space: nowrap;
+}
+
+/* Serif pull quote */
+.v-serif {
+  font-family: var(--ff-serif);
+  font-size: 12pt;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.4;
+  letter-spacing: -0.12px;
+}
+
+/* Large stat number */
+.v-stat {
+  font-family: var(--ff-display);
+  font-size: 56pt;
+  font-weight: 900;
+  color: var(--mint);
+  line-height: 0.88;
+}
+.v-stat--sm { font-size: 30pt; }
+.v-stat--violet { color: var(--violet); }
+.v-stat--white  { color: var(--white); }
+
+/* ─── Slide Header ──────────────────────────────────────── */
+.v-header {
+  margin-bottom: 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+}
+
+/* ─── Cards ─────────────────────────────────────────────── */
+
+/* Base story card — dark with hairline white border */
+.v-card {
+  background: var(--canvas);
+  border: 1px solid var(--white);
+  border-radius: var(--r-card);
+  padding: 14pt 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+}
+
+/* Accent fills — color-as-elevation */
+.v-card--mint {
+  background: var(--mint);
+  border: none;
+  color: var(--black);
+}
+.v-card--mint .v-kicker   { color: rgba(0,0,0,0.55); }
+.v-card--mint .v-card-title { color: var(--black); }
+.v-card--mint .v-body,
+.v-card--mint .v-body--compact { color: rgba(0,0,0,0.65); }
+
+.v-card--violet {
+  background: var(--violet);
+  border: none;
+  color: var(--white);
+}
+.v-card--violet .v-kicker { color: var(--mint); }
+
+.v-card--yellow {
+  background: var(--yellow);
+  border: none;
+  color: var(--black);
+}
+.v-card--yellow .v-kicker   { color: rgba(0,0,0,0.55); }
+.v-card--yellow .v-card-title { color: var(--black); }
+.v-card--yellow .v-body,
+.v-card--yellow .v-body--compact { color: rgba(0,0,0,0.65); }
+
+.v-card--pink {
+  background: var(--pink);
+  border: none;
+  color: var(--white);
+}
+
+.v-card--orange {
+  background: var(--orange);
+  border: none;
+  color: var(--white);
+}
+
+.v-card--slate {
+  background: var(--surface);
+  border: 1px solid var(--frame);
+  color: var(--white);
+}
+
+/* Feature card — larger radius */
+.v-card--feature { border-radius: var(--r-feature); padding: 20pt 22pt; }
+
+/* Mint-bordered dark card */
+.v-card--active {
+  background: var(--canvas);
+  border: 1px solid var(--mint);
+}
+
+/* ─── Grids ──────────────────────────────────────────────── */
+.v-grid {
+  display: grid;
+  gap: 10pt;
+  flex: 1;
+}
+.v-grid--3col { grid-template-columns: repeat(3, 1fr); }
+.v-grid--2col { grid-template-columns: repeat(2, 1fr); }
+.v-grid--feature { grid-template-columns: 2fr 1fr; }
+.v-grid--sidebar { grid-template-columns: 1fr 2fr; }
+
+/* ─── StoryStream Timeline ──────────────────────────────── */
+.v-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+  border-left: 1px solid var(--violet-dark);
+  padding-left: 14pt;
+  flex: 1;
+}
+
+.v-stream-item {
+  display: flex;
+  gap: 10pt;
+  align-items: flex-start;
+}
+
+.v-stream-time {
+  font-family: var(--ff-mono);
+  font-size: 7pt;
+  font-weight: 600;
+  color: var(--text-sec);
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  white-space: nowrap;
+  padding-top: 2pt;
+  min-width: 36pt;
+}
+
+.v-stream-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+
+/* Current / active stream item */
+.v-stream-item--current .v-kicker      { color: var(--mint); }
+.v-stream-item--current .v-card-title  { color: var(--mint); }
+.v-stream-item--current .v-stream-time { color: var(--mint); }
+
+/* ─── Pill Tags & Badges ─────────────────────────────────── */
+.v-pill {
+  display: inline-block;
+  padding: 3pt 9pt;
+  border-radius: 15pt;
+  font-family: var(--ff-mono);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.35px;
+  line-height: 1;
+}
+.v-pill--mint    { background: var(--mint);   color: var(--black); }
+.v-pill--violet  { background: var(--violet); color: var(--white); }
+.v-pill--yellow  { background: var(--yellow); color: var(--black); }
+.v-pill--outline { background: transparent; border: 1px solid var(--mint); color: var(--mint); }
+.v-pill--ghost   { background: transparent; border: 1px solid var(--white); color: var(--white); }
+.v-pill--slate   { background: var(--surface); color: var(--text-muted); border: 1px solid var(--frame); }
+
+/* ─── Pill Buttons ───────────────────────────────────────── */
+.v-btn {
+  display: inline-block;
+  padding: 7pt 18pt;
+  border-radius: var(--r-feature);
+  font-family: var(--ff-mono);
+  font-size: 9pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.35px;
+  cursor: pointer;
+}
+.v-btn--primary  { background: var(--mint);    color: var(--black); border: none; }
+.v-btn--slate    { background: var(--surface); color: var(--text-muted); border: none; }
+.v-btn--outline  { background: transparent; border: 1px solid var(--mint); color: var(--mint); border-radius: var(--r-pill); }
+.v-btn--violet   { background: transparent; border: 1px solid var(--violet); color: var(--violet); border-radius: var(--r-promo); }
+
+/* ─── Insight Bar ───────────────────────────────────────── */
+.v-insight {
+  margin-top: auto;
+  padding-top: 9pt;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  align-items: baseline;
+  gap: 14pt;
+}
+.v-insight-label {
+  font-family: var(--ff-mono);
+  font-size: 7pt;
+  font-weight: 600;
+  color: var(--mint);
+  text-transform: uppercase;
+  letter-spacing: 1.35px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.v-insight-text {
+  font-family: var(--ff-sans);
+  font-size: 8.5pt;
+  font-weight: 400;
+  color: var(--text-sec);
+  line-height: 1.4;
+}
+
+/* ─── Cover Slide ───────────────────────────────────────── */
+.v-cover {
+  width: 100%;
+  height: 100%;
+  background: var(--canvas);
+  padding: 44pt 52pt 38pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* ─── Section Divider ───────────────────────────────────── */
+.v-divider {
+  width: 100%;
+  height: 100%;
+  padding: 38pt 46pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.v-divider--mint   { background: var(--mint);   color: var(--black); }
+.v-divider--violet { background: var(--violet); color: var(--white); }
+.v-divider--yellow { background: var(--yellow); color: var(--black); }
+.v-divider--slate  { background: var(--surface); color: var(--white); border: 1px solid var(--white); }
+
+.v-divider__chapter {
+  font-family: var(--ff-mono);
+  font-size: 8pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  opacity: 0.65;
+  margin-bottom: 8pt;
+}
+.v-divider__title {
+  font-family: var(--ff-display);
+  font-size: 50pt;
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: 0.8px;
+  margin-bottom: 12pt;
+}
+.v-divider__sub {
+  font-family: var(--ff-sans);
+  font-size: 10pt;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1.9px;
+  opacity: 0.70;
+}
+
+/* ─── Image Block ───────────────────────────────────────── */
+.v-image {
+  border-radius: var(--r-card);
+  border: 1px solid var(--frame);
+  object-fit: cover;
+  display: block;
+}
+.v-image--full {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-card);
+}
+
+/* ─── Slide Number / Brand Strip ────────────────────────── */
+.v-brand {
+  position: absolute;
+  bottom: 14pt;
+  right: 20pt;
+  font-family: var(--ff-mono);
+  font-size: 6.5pt;
+  font-weight: 600;
+  color: var(--text-sec);
+  text-transform: uppercase;
+  letter-spacing: 1.35px;
+}
+
+/* ─── Utility ───────────────────────────────────────────── */
+.v-mint    { color: var(--mint); }
+.v-violet  { color: var(--violet); }
+.v-yellow  { color: var(--yellow); }
+.v-muted   { color: var(--text-sec); }
+.v-mono    { font-family: var(--ff-mono); }
+.v-upper   { text-transform: uppercase; }
+.v-tight   { line-height: 0.92; }
+.v-flex-col { display: flex; flex-direction: column; gap: 6pt; }
+.v-flex-row { display: flex; flex-direction: row; gap: 10pt; align-items: flex-start; }
+.v-stretch  { flex: 1; }
+.v-center   { display: flex; align-items: center; justify-content: center; }

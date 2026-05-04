@@ -181,7 +181,7 @@ async function extractSlideData(page) {
     const PX_PER_IN = 96;
 
     // Fonts that are single-weight and should not have bold applied
-    const SINGLE_WEIGHT_FONTS = ['impact'];
+    const SINGLE_WEIGHT_FONTS = ['impact', 'pretendard semibold', 'pretendard variable', 'pretendard'];
 
     const shouldSkipBold = (fontFamily) => {
       if (!fontFamily) return false;
@@ -216,21 +216,19 @@ async function extractSlideData(page) {
     const mapFont = (family, weight) => {
       const normalizedFamily = family.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
       const numWeight = parseInt(weight);
-      if (normalizedFamily.includes('noto sans kr') || normalizedFamily.includes('sans-serif')) {
-        let suffix = '';
-        if (numWeight <= 100) suffix = 'Thin';
-        else if (numWeight <= 200) suffix = 'UltraLight';
-        else if (numWeight <= 300) suffix = 'Light';
-        else if (numWeight <= 400) suffix = 'Regular';
-        else if (numWeight <= 500) suffix = 'Medium';
-        else if (numWeight <= 600) suffix = 'SemiBold';
-        else if (numWeight <= 700) suffix = 'Bold';
-        else if (numWeight <= 800) suffix = 'ExtraBold';
-        else if (numWeight >= 900) suffix = 'Heavy';
-        if (suffix === 'Regular') return { name: 'Apple SD Gothic Neo', bold: false };
-        return { name: `Apple SD Gothic Neo ${suffix}`, bold: false };
+
+      // Display / infographic titles → Impact
+      if (normalizedFamily.includes('impact') || normalizedFamily.includes('arial narrow')) {
+        return { name: 'Impact', bold: false };
       }
-      return { name: normalizedFamily, bold: weight === 'bold' || numWeight >= 600 };
+
+      // Code blocks → Courier New
+      if (normalizedFamily.includes('courier') || normalizedFamily.includes('monospace')) {
+        return { name: 'Courier New', bold: numWeight >= 600 };
+      }
+
+      // All Korean / sans-serif body text → Pretendard SemiBold
+      return { name: 'Pretendard SemiBold', bold: false };
     };
 
     // Check if an element is visible
@@ -534,16 +532,27 @@ async function captureComponents(page, tmpDir, htmlFile) {
         return;
       }
 
+      const explicitLayer = (el.getAttribute('data-pptx-layer') || '').toLowerCase();
+      const explicitCapture = (el.getAttribute('data-pptx-capture') || '').toLowerCase();
+      const forceCapture = ['design', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitLayer) ||
+        ['true', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitCapture);
+      const skipCapture = ['none', 'text', 'ignore', 'background'].includes(explicitLayer) ||
+        ['false', 'none', 'ignore'].includes(explicitCapture);
+
+      if (skipCapture) return;
+
       // Skip text-only elements (P, H1-H6, SPAN without background)
       const isTextElement = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I'].includes(el.tagName);
-      if (isTextElement && !hasVisualStyling(el, computed)) {
+      if (isTextElement && !hasVisualStyling(el, computed) && !forceCapture) {
         return;
       }
 
       // Capture if:
-      // 1. Has visual styling AND is significant size
-      // 2. OR is a decorative positioned element (any size)
-      const shouldCapture = (hasVisualStyling(el, computed) && isSignificantSize(rect)) ||
+      // 1. Explicitly marked with data-pptx-layer/data-pptx-capture
+      // 2. Has visual styling AND is significant size
+      // 3. OR is a decorative positioned element (any size)
+      const shouldCapture = forceCapture ||
+        (hasVisualStyling(el, computed) && isSignificantSize(rect)) ||
         isDecorativeElement(el, computed);
 
       if (shouldCapture) {
@@ -554,7 +563,8 @@ async function captureComponents(page, tmpDir, htmlFile) {
           width: rect.width,
           height: rect.height,
           className: el.className || '',
-          tagName: el.tagName
+          tagName: el.tagName,
+          layer: explicitLayer || explicitCapture || 'auto'
         });
       }
     });
@@ -567,7 +577,9 @@ async function captureComponents(page, tmpDir, htmlFile) {
     await page.evaluate((id) => {
       const el = document.getElementById(id);
       if (el) {
-        // Hide direct text nodes by making text transparent
+        // Hide direct text nodes by making text transparent.
+        // Explicit design layers normally contain no text, but this keeps
+        // accidental labels out of selectable visual PNG layers.
         // This preserves the container's background/border but hides the text content
         el.style.color = 'transparent';
         el.style.webkitTextFillColor = 'transparent';
@@ -660,6 +672,12 @@ async function captureStandaloneImages(page, tmpDir) {
       // Skip if hidden
       const style = window.getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+
+      const explicitLayer = (el.getAttribute('data-pptx-layer') || '').toLowerCase();
+      const explicitCapture = (el.getAttribute('data-pptx-capture') || '').toLowerCase();
+      const handledByComponentCapture = ['design', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitLayer) ||
+        ['true', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitCapture);
+      if (handledByComponentCapture) return;
 
       // DO NOT skip images inside components - they need to be captured separately
       // The component skeleton capture hides these images, so they won't be duplicated
@@ -754,6 +772,8 @@ async function html2pptx(htmlFile, pres, options = {}) {
 
         // Hide basic content
         document.querySelectorAll(textTags.join(',')).forEach(el => {
+          const explicitLayer = (el.getAttribute('data-pptx-layer') || '').toLowerCase();
+          if (['background', 'bg'].includes(explicitLayer)) return;
           el.style.opacity = '0';
         });
 
@@ -786,10 +806,17 @@ async function html2pptx(htmlFile, pres, options = {}) {
 
           if (rect.width === 0 || rect.height === 0) return;
 
+          const explicitLayer = (el.getAttribute('data-pptx-layer') || '').toLowerCase();
+          const explicitCapture = (el.getAttribute('data-pptx-capture') || '').toLowerCase();
+          const forceHide = ['design', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitLayer) ||
+            ['true', 'component', 'image', 'visual', 'asset', 'overlay'].includes(explicitCapture);
+
           const isTextElement = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I'].includes(el.tagName);
           if (isTextElement && !hasVisualStyling(el, computed)) return;
 
-          const shouldHide = (hasVisualStyling(el, computed) && isSignificantSize(rect)) || isDecorativeElement(el, computed);
+          const shouldHide = forceHide ||
+            (hasVisualStyling(el, computed) && isSignificantSize(rect)) ||
+            isDecorativeElement(el, computed);
 
           if (shouldHide) {
             el.style.opacity = '0';

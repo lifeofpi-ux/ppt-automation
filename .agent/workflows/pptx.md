@@ -60,6 +60,9 @@ workspace/
     │   ├── scripts/
     │   │   └── generate_icons.js  <-- Copied from template and customized
     │   ├── images/                <-- All generated images (icons, backgrounds)
+    │   ├── drafts/                <-- HTML draft screenshots for image-model reference
+    │   ├── objects/               <-- Decomposed visual object PNGs from IMAGE-2/SAM2
+    │   ├── svg/                   <-- Phosphor SVG icons and vector motifs
     │   ├── thumbnails/            <-- Validation thumbnails
     │   └── slides/                <-- HTML slide files
     └── [project_name].pptx        <-- Final output file
@@ -112,8 +115,14 @@ To ensure this workflow operates seamlessly on both macOS and Windows:
 6.  **Art Direction with Generated Assets**:
     *   **Do NOT rely on CSS gradients** (they fail in conversion).
     *   **Do NOT use generic stock photos**.
-    *   **STRATEGY**: Use `generate_image` to create bespoke backgrounds, textures, and illustrations.
+    *   **STRATEGY**: Use the `generate_design_assets.js` script (powered by OpenAI `gpt-image-2`, Image 2) to create bespoke backgrounds, textures, and illustrations. Template at `.agent/workflows/skills/pptx/scripts/generate_design_assets.template.js`.
     *   **Image Styling (MANDATORY)**: ALWAYS apply `border-radius: 12pt` (or 16px) to all content images (screenshots, photos) to ensure a modern, premium look. Sharp corners look outdated.
+    *   **AI Background CSS Pattern**: Always combine the AI image with a CSS gradient overlay for text contrast:
+        ```css
+        .bg { background: #000 url('../images/bg_cover.png') center/cover no-repeat; }
+        .overlay { position: absolute; inset: 0; background: linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.42) 65%, rgba(0,0,0,0.18) 100%); }
+        ```
+    *   **CSS Fallback**: Always include a solid color fallback in the `background` shorthand so slides remain legible if the AI image hasn't been generated yet.
 
 ### Step 0: Design Selection Interaction (MANDATORY)
 
@@ -125,11 +134,47 @@ To ensure this workflow operates seamlessly on both macOS and Windows:
 > 2. **Minimalist Corporate** (Clean, White/Navy, Trustworthy) - *Best for Business/Reports*
 > 3. **Creative Storytelling** (Warm, Serif Fonts, Emotional) - *Best for Essays/Stories*
 > 4. **Dark Mode Neon** (Black, Glowing, High Contrast) - *Best for Trends/Gaming*
-> 5. **Custom Design** (Tell me your preference!)
+> 5. **Structured Editorial Universe** (Premium proposal, process flows, architecture maps, insight bars) - *Best for strategy/education decks*
+> 6. **The Verge Editorial** (Dark canvas, acid-mint/ultraviolet accents, Impact headlines, StoryStream cards) - *Best for tech media, news, trend reports*
+> 7. **Custom Design** (Tell me your preference!)
 
 **Action based on selection**:
-- If **1-4 selected**: Read the corresponding template file from `.agent/workflows/skills/pptx/templates/`.
-- If **5 selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+- If **1-5 selected**: Read the corresponding template file from `.agent/workflows/skills/pptx/templates/`.
+- If **6 selected**: Read `.agent/workflows/skills/pptx/templates/the_verge_editorial.md` AND run the Verge CSS setup step below before writing any HTML.
+- If **7 selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+
+#### The Verge Editorial — CSS Setup (Run ONCE per project)
+
+When the user selects **The Verge Editorial** style, copy the shared CSS file into the project before writing any slide HTML:
+
+```bash
+mkdir -p workspace/[project_name]/assets/css
+cp .agent/workflows/skills/pptx/themes/verge.css workspace/[project_name]/assets/css/verge.css
+```
+
+Then every slide HTML file starts with:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/verge.css">
+  <style>
+    /* Slide-specific overrides only — do NOT repeat verge.css rules here */
+  </style>
+</head>
+<body>
+  <!-- use .v-* BEM classes from verge.css -->
+</body>
+</html>
+```
+
+**Reuse contract**:
+- All Verge design tokens (colors, fonts, radii, spacing) live in `verge.css` custom properties.
+- Slide HTML files use only `.v-*` utility classes from `verge.css`; per-slide `<style>` blocks contain layout overrides only (grid dimensions, specific heights, image paths).
+- To update the visual system across all slides in a project, edit only `verge.css`.
+- To share the theme across multiple projects, copy `verge.css` into each project's `assets/css/` folder.
 
 ### Using Design Templates
 
@@ -146,6 +191,11 @@ You can use pre-defined design templates to quickly achieve high-quality results
   - **Reference**: `.agent/workflows/skills/pptx/templates/dark_mode_neon.md`
 - **Academic Structured**: High-density, typography-driven design for education.
   - **Reference**: `.agent/workflows/skills/pptx/templates/academic_structured.md`
+- **Structured Editorial Universe**: Premium proposal-style deck with dark cover, structured process slides, architecture maps, comparison matrices, and bottom insight bars.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/structured_editorial_universe.md`
+- **The Verge Editorial**: Dark canvas (`#131313`), acid-mint + ultraviolet hazard accents, Impact display headlines, StoryStream pill-card grid. Best for tech media, news, trend, product launch decks.
+  - **Reference**: `.agent/workflows/skills/pptx/templates/the_verge_editorial.md`
+  - **Shared CSS**: `.agent/workflows/skills/pptx/themes/verge.css` (copy to `workspace/[project]/assets/css/verge.css`)
 
 ### Optimization: Parallel Asset Generation (HIGH PRIORITY)
 
@@ -154,11 +204,9 @@ To maximize efficiency, you **MUST** execute asset generation tasks in parallel 
 **Parallel Workflow Strategy**:
 1.  **Initial Setup**: Create project folders and scripts (Sequential).
 2.  **Asset Generation (PARALLEL)**:
-    *   Call `run_command` to execute the icon generation script.
-    *   Call `generate_image` for Background 1.
-    *   Call `generate_image` for Background 2.
-    *   Call `generate_image` for Infographics.
-    *   *Note*: Do NOT wait for one image to finish before starting the next.
+    *   Run `node workspace/[project]/assets/scripts/generate_icons.js` (Phosphor icons)
+    *   Run `node workspace/[project]/assets/scripts/generate_design_assets.js` (OpenAI backgrounds + card textures)
+    *   *Note*: These two scripts are independent — run in parallel. The design assets script generates all backgrounds and card textures in one call.
 3.  **HTML Creation (PARALLEL)**:
     *   Once assets are triggered, you can start writing `slide1.html`, `slide2.html`, etc., assuming the assets will be ready by the time the user renders them.
     *   *Note*: If you need to check the generated image path, you may need to wait, but generally, standard naming conventions allow you to write HTML blindly.
@@ -166,6 +214,195 @@ To maximize efficiency, you **MUST** execute asset generation tasks in parallel 
 #### Hybrid Rendering & Styling Mechanism (3-Layer Strategy)
 
 The `html2pptx` workflow uses an advanced **3-Layer Hybrid Rendering** approach to achieve 100% visual fidelity while maintaining text editability:
+
+#### Draft-Aware IMAGE Layer Workflow (MANDATORY for premium new decks)
+
+When creating a polished deck from scratch, treat the first HTML pass as a **semantic draft**, not the final design. The final PPTX should prioritize high-end visuals while keeping every major visual element individually selectable in PowerPoint.
+
+#### Structured Editorial Slide Workflow (MANDATORY for reference-quality decks)
+
+When the user asks for slides like a polished consulting, strategy, education, platform, or brand proposal deck, do **not** start from generic "title + body + image" layouts. Build a deck-wide style system from the full text first, then choose a slide-specific design strategy for each slide based on that slide's content structure.
+
+**Target style**:
+- Slides should look like authored presentation pages: strong header system, clear slide number, compact brand marks, one dominant diagram or framework, supporting cards, and a final insight bar where useful.
+- Text must remain editable in PowerPoint.
+- Complex decorative visuals may be selectable PNG/SVG layers, but they should support the layout rather than replace it.
+- IMAGE-2 is used for premium backgrounds, abstract orbit/mesh/texture fields, hero objects, and text-free visual layers. It should not be asked to render final slide text.
+- Icons should come from an icon library or generated SVG/PNG icon set, not from freeform image generation, unless the icon is purely decorative.
+
+#### Phosphor SVG Native Workflow (MANDATORY when user asks for no images)
+
+When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or complains that image-generated quality is poor, switch to a **vector-native deck**. In this mode, do not use IMAGE-2, SAM2, raster backgrounds, or photographic/illustrative images. Build the entire deck from editable PowerPoint text, PPT-native shapes/connectors, tables, and Phosphor-derived SVG icons.
+
+**Output contract**:
+- No AI-generated bitmap backgrounds or visual masters.
+- No full-slide screenshots as design layers.
+- Use Phosphor icons as SVG/vector assets for semantic pictograms.
+- Use PPT-native shapes for panels, cards, rails, matrices, architecture layers, arrows, dividers, badges, and insight bars.
+- Keep all meaningful text editable.
+- Prefer direct `pptxgenjs` construction over html2pptx when precise native shapes/connectors are more important than CSS fidelity.
+- If SVG insertion becomes rasterized by the export library, keep icons simple and separately selectable; never flatten an entire slide.
+- Visible slide copy must be audience-facing. Never show internal production/tool terms such as `PHOSPHOR`, `SVG`, `IMAGE-2`, `SAM2`, `PPTXGenJS`, `workflow`, `automation`, or `Codex` unless the user explicitly asks for a process/tooling deck.
+- Do not add a right-side panel, hero icon, orbit, rail, or diagram only because there is empty space. Every visual zone must have a clear `content_function`: process, comparison, hierarchy, loop, system boundary, data flow, decision, or synthesis.
+- Each content slide should use multiple semantic icons when density allows: one icon per concept card, process node, layer, row, or callout. Avoid repeating the same icon across unrelated items.
+- If a slide truly needs a complex visual that is hard to author as native shapes, IMAGE-2 may be used only for a text-free **diagrammatic** layer: lines, routes, system topology, abstract data flow, or structured 도식. It must not become decorative artwork, a photo, a raster background, or a container for final text.
+
+**Required vector-first loop**:
+1. Read all source text and define a deck-wide vector design system: palette roles, typography scale, stroke width, icon style, connector style, grid, and density rules.
+2. Classify each slide by content relationship: cover, sequence, process, system, comparison, loop, anatomy, decision, summary.
+3. Assign a slide-specific vector diagram with a named content function: timeline rail, process nodes, architecture stack, comparison matrix, flywheel, anatomy callouts, decision tree, or synthesis board.
+4. Render Phosphor icons to SVG strings with `react-icons/pi` or `@phosphor-icons`.
+5. Build the PPTX with native text boxes, shapes, connectors, and icon SVGs. Use cards only when they organize real content; do not create filler sections.
+6. Generate HTML or PNG previews for QA, but do not use those previews as slide content.
+7. Validate slide count, editable text count, picture/icon count, banned visible tool terms, and overflow/preview readability.
+
+**Vector visual grammar**:
+- `cover`: monumental typography, orbital SVG line system, metadata strip, icon constellation.
+- `sequence`: date/stage rail with numbered nodes and Phosphor icons.
+- `process`: circular icon nodes connected by arrows.
+- `system`: stacked layers, boundary boxes, protocol/data connectors.
+- `comparison`: columns or matrix with decision highlight.
+- `loop`: circular arrows/flywheel around a central icon.
+- `anatomy`: central icon/object with editable callout labels.
+- `decision`: branching tree with condition chips.
+- `summary`: principle board plus compact map recap.
+
+**Acceptance checks**:
+- The deck still looks premium without bitmap imagery.
+- At least 80% of visual elements are PPT-native shapes/connectors/text or SVG icons.
+- No slide uses a raster image as its main visual.
+- Adjacent slides vary their diagram grammar according to the content.
+- Korean text remains readable and does not collide.
+
+**Required structure-first loop**:
+1. **Full-source digest**: Read all available source text before designing. Extract thesis, audience, recurring vocabulary, timeline, actors, systems, contrasts, examples, metaphors, technical terms, emotional tone, and density.
+2. **Deck-wide style system**: Define the common visual language from the full source, not from a single reference slide:
+   - `visual_metaphor`: the deck's central metaphor, e.g. universe, map, factory, network, operating system.
+   - `palette_roles`: which colors mean history, interaction, data, backend, tradeoff, warning, or synthesis.
+   - `typography_scale`: title, lead, diagram label, body, metadata, footer.
+   - `icon_taxonomy`: icon families for people, document, browser, code, package, server, database, security, scale, deployment.
+   - `layout_rhythm`: where the deck should feel cinematic, dense, analytical, or explanatory.
+   - `shared_components`: header, slide number, brand marks, section markers, insight bars, badges, connector styles.
+3. **Slide content classification**: For every slide, classify the actual content relationship before choosing a design:
+   - `sequence`: historical/evolutionary steps.
+   - `process`: actions that happen in order.
+   - `system`: architecture or layered components.
+   - `comparison`: two or more options/tradeoffs.
+   - `loop`: feedback, lock-in, flywheel, state persistence.
+   - `anatomy`: parts of one concept.
+   - `decision`: when to choose what.
+   - `summary`: principles, checklist, or final synthesis.
+4. **Slide-specific design strategy**: For every slide, write a compact spec with:
+   - `slide_role`: cover, section opener, process, comparison, timeline, architecture map, ecosystem loop, matrix, summary.
+   - `main_claim`: the one sentence the slide must land.
+   - `editable_text`: title, lead sentence, labels, bullets, captions, footer insight.
+   - `content_relationship`: sequence, process, system, comparison, loop, anatomy, decision, or summary.
+   - `best_visual_form`: timeline, process flow, architecture map, comparison matrix, flywheel, anatomy diagram, decision tree, evidence cards, or synthesis board.
+   - `required_elements`: only the header/cards/arrows/icons/insight bar/image layers that help this slide.
+   - `omit_elements`: explicitly name template elements that should not appear on this slide.
+   - `image2_layers`: only the text-free support layers needed.
+5. **Adaptive template selection**: Choose a template family member only after the slide-specific strategy is written. Templates are starting grammars, not mandatory element bundles.
+6. **Wireframe HTML**: Build the slide with real text, icon placeholders, arrows, cards, dividers, and empty visual zones. Use stable absolute/flex/grid dimensions.
+7. **Draft screenshot**: Capture the wireframe into `assets/drafts/slideNN_draft.png`.
+8. **IMAGE-2 master visual generation**: For slides that need high-detail design, generate a text-free full-slide or zone-level master visual. The prompt must reference the draft composition and explicitly say that all labels/text remain empty.
+9. **SAM2 object decomposition**: When the master visual contains multiple logical design objects, decompose it into object PNGs using `slideNN_objects.json` bbox prompts. Use Sharp/Pillow bbox crops by default and optional SAM2 box-mask refinement for curved, glowing, or irregular objects.
+10. **Layered HTML final**: Place decomposed object PNGs or generated zone layers with `data-pptx-layer="design"` or `data-pptx-capture="asset"` beneath editable text.
+11. **PPTX build and QA**: Convert with `html2pptx`, verify slide count, editable text count, selectable image layers, overflow, and previews.
+
+**Adaptive visual grammar**:
+- `cover/editorial statement`: dark cover, monumental type, sparse metadata, one atmospheric IMAGE-2 field.
+- `sequence/history`: timeline rail, date badges, problem -> solution -> new problem rhythm.
+- `process/workflow`: icon nodes, arrows, step captions, optional final outcome badge.
+- `system/architecture`: stacked layers, zones, connectors, protocol/data labels, boundary lines.
+- `comparison/tradeoff`: columns, balance scales, decision rows, highlighted recommended path.
+- `loop/flywheel`: circular or orbital structure, dotted feedback connector, central lock-in/infrastructure node.
+- `anatomy/concept`: central object with labeled callouts, magnified subparts, definition blocks.
+- `decision/playbook`: decision tree, checklist rows, conditions, recommended prompts/actions.
+- `summary/synthesis`: principle grid, compact map, memory hooks, final thesis.
+
+**SAM2 object decomposition contract**:
+- Add `data-object-id` to every visual placeholder that should become a separate PPT object after IMAGE-2 detailing.
+- Capture draft screenshots with `.agent/workflows/skills/pptx/scripts/capture_slide_drafts.template.js`; it writes both `slideNN_draft.png` and `slideNN_objects.json`.
+- Generate `slideNN_visual_master.png` with IMAGE-2 when one high-detail slide-level visual should be cut into pieces.
+- Copy `.agent/workflows/skills/pptx/scripts/decompose_visual_objects.template.py` to `workspace/[project]/assets/scripts/decompose_visual_objects.py`.
+- Run bbox-only decomposition first:
+  ```bash
+  python workspace/[project]/assets/scripts/decompose_visual_objects.py --slide slide03
+  ```
+- Use SAM2 refinement only for irregular or overlapping objects:
+  ```bash
+  set SAM2_CHECKPOINT=C:\models\sam2.1_hiera_small.pt
+  set SAM2_MODEL_CFG=configs/sam2.1/sam2.1_hiera_s.yaml
+  python workspace/[project]/assets/scripts/decompose_visual_objects.py --slide slide03 --sam2
+  ```
+- Decomposed PNGs preserve their source bbox canvas size by default for reliable PPTX positioning. Use `--trim-alpha` only when offset handling is implemented.
+- Reinsert output PNGs from `assets/objects/slideNN/` into final HTML as separate absolutely positioned image layers.
+- Do not use SAM2 to invent the object list. The HTML object manifest is the source of truth; SAM2 only refines masks inside planned bbox regions.
+
+**Template family**:
+- `structured_dark_cover`: dark navy/purple cover with monumental typography, orbital visual field, and optional bottom metadata strip.
+- `structured_process_flow`: white slide with slide-number pill, top brand line, large title, adaptive 3-5 step flow, optional feedback loop, optional bottom analysis cards, optional insight bar.
+- `structured_architecture_map`: layered system diagram with client/browser/server/database/cache/deployment zones.
+- `structured_comparison_matrix`: side-by-side or 3-column comparison with explicit tradeoffs and highlighted decision.
+- `structured_timeline_evolution`: chronological flow where each stage is a problem -> solution -> new problem transition.
+- `structured_loop_flywheel`: circular/orbital flywheel for network effects, lock-in, session/state, cache refresh, or ecosystem dynamics.
+- `structured_anatomy_callout`: central concept/object with 4-6 labeled editable callouts.
+- `structured_decision_tree`: conditional path or "when to use what" guidance.
+- `structured_summary_playbook`: dense but readable closing slide with principles, checklist, or operating model.
+
+**Composition rules**:
+- Each slide needs one dominant read within 3 seconds: a title claim plus one diagram/table/map.
+- Use cards only when they organize real structure: roles, effects, risks, decisions, or examples. Avoid generic empty cards.
+- Use bottom insight bars only when the slide has a meaningful "so what" synthesis. If the slide is already self-evident, omit the bar.
+- Use icon nodes for concepts, arrows for causality, dotted lines for feedback loops, badges for metadata, and layer bands for systems.
+- Do not force the same component set onto every slide. The common style should come from palette, typography, spacing, header behavior, icon family, and connector language; the visual elements should change according to content.
+- Do not put paragraphs inside large decorative boxes. Convert long text into labels, short bullets, callouts, speaker notes, or additional slides.
+- Keep diagram text editable; keep generated visuals text-free.
+
+**Reference-quality acceptance checks**:
+- Thumbnail reads as a designed proposal/education deck, not a generic AI slide.
+- Cover has a distinct visual identity and is not a normal content slide.
+- At least 70% of content slides use a structured visual object: process, map, timeline, matrix, loop, or architecture diagram.
+- Adjacent slides do not repeat the same layout unless the content relationship genuinely repeats.
+- Every slide has an explicit slide-specific design strategy derived from the content.
+- Every slide has editable title and body text.
+- Major decorative/visual objects are separate selectable layers where practical.
+- If a slide uses a full-slide IMAGE-2 master visual, it is decomposed into object PNGs before PPTX assembly unless it is a pure background texture.
+- No IMAGE-2 asset contains real slide copy.
+- No slide depends on a single flattened screenshot of the whole slide.
+
+**Target output contract**:
+- Complex design elements may be PNG layers. They do **not** need to be native PowerPoint shapes.
+- Prefer SVG/PNG icon assets from the icon library for icons; do not ask the image model to invent iconography.
+- Text must remain editable PowerPoint text boxes.
+- Major visual objects must be separate layers where practical: background, hero illustration/photo, card skin, diagram ornament, chart/table placeholder skin, icons, badges, and text.
+- Avoid one flattened full-slide artwork except for true background texture. If a full-slide transparent overlay is used, it must contain only one logical design layer and transparent empty space elsewhere.
+
+**Required loop**:
+1. Create a wireframe HTML slide first. Include all real text in semantic tags, and mark visual zones with empty `div`s, icon-library placeholders, or skeleton frames.
+2. Add `data-object-id` and `data-object-kind` to any visual placeholder that should become a selectable object after decomposition.
+3. Render/screenshot the draft slide to `workspace/[project]/assets/drafts/slideNN_draft.png` and write `slideNN_objects.json`. Copy `.agent/workflows/skills/pptx/scripts/capture_slide_drafts.template.js` to `workspace/[project]/assets/scripts/capture_slide_drafts.js` and run `node workspace/[project]/assets/scripts/capture_slide_drafts.js`.
+4. Use the draft screenshot as an image reference for the image-generation script. The image model should read the full slide composition and generate **text-free visual master layers** or transparent zone layers.
+5. If a master layer contains multiple objects, run `decompose_visual_objects.py` to crop object PNGs using the HTML bbox manifest and optional SAM2 box masks.
+6. Place generated/decomposed PNG/SVG assets back into the HTML as absolutely positioned layers using `data-pptx-layer="design"` or `data-pptx-capture="asset"`.
+7. Run `html2pptx`. The converter will capture marked design layers as individual selectable image objects, then place editable text above them.
+8. Validate thumbnails. If a design object conflicts with text, regenerate or decompose only that object and keep the text objects unchanged.
+
+**HTML layer hints**:
+```html
+<div class="bg" data-pptx-layer="background"></div>
+<div class="orbit-zone"
+     data-object-id="orbit-field"
+     data-object-kind="decor"></div>
+<img class="decomposed-object"
+     data-pptx-layer="design"
+     src="../objects/slide01/01_orbit-field.png" />
+<div class="card-skin" data-pptx-layer="design"></div>
+<img class="icon" data-pptx-capture="asset" src="../images/icon_target.png" />
+<h1>Editable slide title</h1>
+```
+
+Use CSS absolute positioning for generated design layers so their bounding boxes are stable. For full-slide transparent overlays, use `position:absolute; inset:0; width:100%; height:100%; object-fit:cover;`.
 
 **Layer 1: Global Background**
 - Captures the pure slide background (gradients, patterns, textures)
@@ -177,6 +414,7 @@ The `html2pptx` workflow uses an advanced **3-Layer Hybrid Rendering** approach 
 - Captures each component with text hidden but structure preserved
 - Creates transparent PNG "skeleton" images that maintain complex CSS styling
 - Inserted as images on top of the background layer
+- Explicitly marked elements with `data-pptx-layer="design"` or `data-pptx-capture="asset"` are always captured as separate selectable image layers, even when auto-detection would miss them.
 
 **Layer 3: Editable Content**
 - All text elements extracted and inserted as editable PowerPoint text boxes
@@ -526,14 +764,15 @@ p {
      - **Educational/Academic**: Clear, structured, informative (Earth tones, Serif fonts, Diagrams)
    
    - **Creative Slide Structures**: Design each slide with a structure that matches its content purpose:
-     - **Title Slides**: Full-bleed background image with centered or asymmetric text overlay
+     - **Title/Cover Slides**: Full-bleed AI-generated background (`bg_cover.png`) with `.bg` + `.overlay` + content layers. Keep left 60% dark for text.
+     - **Section Dividers (Interstitial)**: Between every major chapter, add a full-bleed divider slide using `bg_section_[n].png`. Structure: `.bg` + `.overlay` + chapter number eyebrow + large heading + 1-line descriptor + bottom timeline tag. Template: `slide_sec01.html` in any project that uses this skill.
      - **Story/Narrative**: Large visual (60-70%) + minimal text, or split-screen with image and quote
-     - **Concept Explanation**: Bento grid with cards, or asymmetric 1/3 text + 2/3 illustration
+     - **Concept Explanation**: Bento grid with cards (use `bg_card_glass.png` / `bg_card_dark.png` for card textures), or asymmetric 1/3 text + 2/3 illustration
      - **Process/Timeline**: Horizontal flow with icons/numbers, or vertical stepped layout
      - **Comparison**: Side-by-side split, or overlapping cards with different colors
      - **Key Message/Quote**: Centered text with decorative elements, or text on colored background block
      - **Data/Statistics**: Big number + context, or chart with minimal supporting text
-     - **List/Points**: Icon-prefixed items in grid or vertical stack with glassmorphism cards
+     - **List/Points**: Icon-prefixed items in grid or vertical stack with glassmorphism cards (use AI card textures)
    
    - **Generate Assets FIRST (MANDATORY)**: Before writing ANY HTML, you **MUST** generate a comprehensive set of custom assets. **Generic placeholders or CSS-only visuals are FORBIDDEN.**
 
@@ -553,31 +792,87 @@ p {
          node workspace/[project_name]/assets/scripts/generate_icons.js
          ```
 
-   - **2. Generate AI Images (Nanobanana - ALL Visualizations)**:
-      - **Rule**: For EVERY visual element that is NOT a text prefix, you **MUST** use `generate_image` (Nanobanana).
-      - **Request Structure**: Use the following JSON structure for image generation requests:
-        ```json
-        {
-            "contents": [{
-              "parts": [{"text": " 요청내용 "}]
-            }],
-            "tools": [{"googleSearch": {}}],
-            "generationConfig": {
-                "imageConfig": {
-                  "aspectRatio": "16:9",
-                  "imageSize": "4K"
-              }
-            }
-        }
+   - **2. Generate AI Backgrounds & Visuals (OpenAI `gpt-image-2` — Image 2)**:
+      - **Rule**: For EVERY background, texture, illustration, and premium design layer, use the `generate_design_assets.js` script powered by OpenAI image models. **Do NOT use CSS gradients as the primary visual.**
+      - **Draft-aware requirement**: For important slides, first screenshot the wireframe HTML draft into `workspace/[project_name]/assets/drafts/slideNN_draft.png`, then configure `ASSETS` entries with `inputImage: 'slideNN_draft.png'` so the image model can read the full slide composition before generating the final text-free visual layer.
+      - **Layering requirement**: Generate separate assets for separate logical objects whenever practical (`slide03_hero_visual.png`, `slide03_card_skin_1.png`, `slide03_diagram_glow.png`). Place each asset back in HTML with `data-pptx-layer="design"` so it becomes an individually selectable PNG layer in the PPTX.
+      - **Icon rule**: Icons come from `react-icons`/Phosphor and are rasterized as PNG/SVG assets. Do not ask the image model to create icons unless a decorative illustration is needed.
+      - **Setup** (once per machine):
+        ```bash
+        npm install openai sharp
+        # Windows:
+        set OPENAI_API_KEY=sk-...
+        # macOS/Linux:
+        export OPENAI_API_KEY="sk-..."
         ```
-     - **Required Assets**:
-       - **Backgrounds**: Generate unique, high-resolution backgrounds (e.g., "soft aurora gradient", "abstract geometric mesh", "paper texture"). **Do NOT use CSS gradients.**
-       - **Infographics**: Generate specific diagrams or charts (e.g., "minimalist pie chart illustration", "process flow diagram").
-       - **Illustrations**: Generate thematic illustrations for title slides and section dividers.
-       - **Textures**: Generate subtle textures for card backgrounds or overlays.
-     - **Prompts**: Write detailed, artistic prompts. Use keywords like "minimalist", "abstract", "high resolution", "soft lighting", "corporate memphis", "glassmorphism", "infographic style".
-     - **Context**: Ensure the image style matches the presentation's "Vibe" (defined in step 2).
-     - **Save**: Store generated images in `workspace/[project_name]/assets/images/` with descriptive names.
+      - **Workflow**:
+        1. Copy the template script to the project:
+           ```bash
+           cp .agent/workflows/skills/pptx/scripts/generate_design_assets.template.js workspace/[project_name]/assets/scripts/generate_design_assets.js
+           ```
+        2. For draft-aware layers, copy and run the draft screenshot helper:
+           ```bash
+           cp .agent/workflows/skills/pptx/scripts/capture_slide_drafts.template.js workspace/[project_name]/assets/scripts/capture_slide_drafts.js
+           node workspace/[project_name]/assets/scripts/capture_slide_drafts.js
+           ```
+        3. Customize `generate_design_assets.js`: edit `DESIGN` (style, palette, mood) and `ASSETS` array (names, prompts, sizes). For draft-aware layers, set `inputImage` to a screenshot in `assets/drafts/`.
+        4. Run to generate all assets:
+           ```bash
+           node workspace/[project_name]/assets/scripts/generate_design_assets.js
+           ```
+        5. Re-run a single asset if needed:
+           ```bash
+           node workspace/[project_name]/assets/scripts/generate_design_assets.js bg_cover
+           ```
+      - **Required Asset Types**:
+        - **`bg_cover.png`** (1920×1080): Full-bleed title slide dark atmospheric background
+        - **`bg_section_[n].png`** (1920×1080): One per major chapter/section — used in interstitial divider slides
+        - **`bg_content_light.png`** (1920×1080): Ultra-subtle near-white texture for light content slides
+        - **`bg_content_dark.png`** (1920×1080): Ultra-subtle dark texture for dark content slides
+        - **`bg_card_glass.png`** (1024×1024): Frosted glass card background for light bento items
+        - **`bg_card_dark.png`** (1024×1024): Dark glass card background for dark bento items
+        - **`slideNN_visual_master.png`** (1920×1080): Text-free full-slide detailed visual structure to decompose into object PNGs
+        - **`slideNN_[object]_layer.png`** (1920×1080 transparent overlay or object-sized PNG): Text-free draft-aware layer for one slide object or visual zone
+      - **Prompt Writing Rules** (CRITICAL for quality):
+        - **ALWAYS** start with: `NO text, NO words, NO letters, NO numbers, NO typography, NO labels`
+        - When using `inputImage`, say: "Use the attached full-slide wireframe only as layout reference. Keep text zones empty/transparent."
+        - For selectable layers, request either "transparent background" or "full-slide transparent PNG overlay with transparent empty space outside the target object."
+        - Specify the slide's left zone: "Left 60% near-black for text placement"
+        - Match the project's visual identity (colors, mood, style)
+        - Use photography/art terms: "cinematic", "volumetric light", "depth of field", "16:9"
+        - For card textures: "square 1:1", "material texture", "no shapes or objects"
+      - **CSS Integration Pattern** (after images are generated):
+        ```css
+        /* Slide background: AI image + gradient overlay */
+        .bg    { background: #000 url('../images/bg_cover.png') center/cover no-repeat; }
+        .overlay { position:absolute; inset:0; background: linear-gradient(105deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.42) 65%, rgba(0,0,0,.18) 100%); }
+
+        /* Bento card: AI glass texture with color tint */
+        .bento-item       { background: rgba(255,255,255,.92) url('../images/bg_card_glass.png') center/cover no-repeat; }
+        .bento-item.dark  { background: rgba(17,17,17,.95) url('../images/bg_card_dark.png') center/cover no-repeat; }
+        .design-layer     { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+        ```
+        ```html
+        <img class="design-layer" data-pptx-layer="design" src="../images/slide03_hero_layer.png" />
+        ```
+      - **Save**: All generated assets go to `workspace/[project_name]/assets/images/`.
+
+   - **3. Decompose IMAGE-2 Master Visuals (Optional but preferred for editable premium slides)**:
+      - **Rule**: If `slideNN_visual_master.png` contains multiple logical design objects, do not place it into the PPTX as one flattened slide layer. Cut it into object PNGs first.
+      - **Manifest source**: `capture_slide_drafts.js` writes `workspace/[project_name]/assets/drafts/slideNN_objects.json` from HTML elements marked with `data-object-id`.
+      - **Script**:
+        ```bash
+        cp .agent/workflows/skills/pptx/scripts/decompose_visual_objects.template.py workspace/[project_name]/assets/scripts/decompose_visual_objects.py
+        python workspace/[project_name]/assets/scripts/decompose_visual_objects.py --slide slide03
+        ```
+      - **SAM2 refinement**:
+        ```bash
+        set SAM2_CHECKPOINT=C:\models\sam2.1_hiera_small.pt
+        set SAM2_MODEL_CFG=configs/sam2.1/sam2.1_hiera_s.yaml
+        python workspace/[project_name]/assets/scripts/decompose_visual_objects.py --slide slide03 --sam2
+        ```
+      - **Output**: `workspace/[project_name]/assets/objects/slideNN/*.png` plus `slideNN_decomposition.json`.
+      - **Integration**: Place each object PNG back in HTML with `data-pptx-layer="design"` so it becomes separately selectable in PowerPoint.
 
    - **Save**: Store all generated assets in `workspace/[project_name]/assets/images/`.
 

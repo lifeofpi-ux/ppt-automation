@@ -1,6 +1,9 @@
 # Ignore everything by default
 *
 
+# API keys — never commit
+.env
+
 # Unignore the .agent directory and its contents
 !/.agent/
 !/.agent/**

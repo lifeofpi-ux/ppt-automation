@@ -32,6 +32,8 @@ Every HTML slide must include proper body dimensions:
 - `<div>` with bg/border - Becomes shape
 - `<img>` - Images
 - `class="placeholder"` - Reserved space for charts (returns `{ id, x, y, w, h }`)
+- `data-pptx-layer="design"` or `data-pptx-capture="asset"` - Force a visual element to become its own selectable image layer in PowerPoint
+- `data-pptx-layer="background"` - Keep an element visible in the pure background capture
 
 ### Critical Text Rules
 
@@ -88,10 +90,57 @@ Every HTML slide must include proper body dimensions:
 ### Icons & Gradients & Generated Images
 
 - **CRITICAL: Never use CSS gradients (`linear-gradient`, `radial-gradient`)** - They don't convert to PowerPoint
-- **Best Practice**: Use the `generate_image` tool (Nanobanana model) to create high-quality backgrounds, textures, and illustrations.
+- **Best Practice**: Use `generate_design_assets.js` with OpenAI image models to create high-quality backgrounds, textures, illustrations, and draft-aware design layers.
 - **Alternative**: Rasterize SVG/CSS gradients to PNG images using Sharp.
 - **Icons**: Use `react-icons` and rasterize to PNG using Sharp.
 - All visual effects must be pre-rendered as raster images before HTML rendering
+
+### Selectable Design Layers
+
+For premium decks, build the HTML in layers. Text remains editable; complex visual design can be PNG/SVG. The important requirement is that each major visual object is a separate element so PowerPoint users can select, move, delete, or replace it.
+
+Before generating final design layers, screenshot the wireframe HTML with `capture_slide_drafts.js`, then use those draft PNGs as `inputImage` references in `generate_design_assets.js`.
+
+Use explicit layer hints when an element should be captured even if it has no obvious CSS background:
+
+```html
+<div class="bg" data-pptx-layer="background"></div>
+<img class="visual-layer"
+     data-pptx-layer="design"
+     src="../images/slide02_hero_visual.png" />
+<img class="icon"
+     data-pptx-capture="asset"
+     src="../images/icon_network.png" />
+<div class="card-skin" data-pptx-layer="design"></div>
+<h2>Editable Heading</h2>
+<p>Editable body copy stays above the visual layers.</p>
+```
+
+Recommended CSS:
+
+```css
+.visual-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+```
+
+Layer hints:
+
+| Attribute | Effect |
+|---|---|
+| `data-pptx-layer="design"` | Force capture as a selectable transparent PNG layer |
+| `data-pptx-layer="component"` | Same as design, useful for cards/panels |
+| `data-pptx-layer="image"` | Same as design, useful for generated visual objects |
+| `data-pptx-capture="asset"` | Force capture an icon/image/object as a layer |
+| `data-pptx-layer="background"` | Preserve this element in the background capture |
+| `data-pptx-layer="ignore"` | Do not capture as a component layer |
+
+Do not put real slide text inside generated design layers. If a referenced image contains text, regenerate it with a stronger no-text prompt.
 
 **Rasterizing Icons with Sharp:**
 
