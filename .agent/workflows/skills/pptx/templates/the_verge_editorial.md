@@ -36,19 +36,20 @@ A dark, brutalist editorial design inspired by The Verge's 2024 redesign. Combin
 
 ### Typography
 
-| Role | Font Stack | Size (pt) | Weight | Letter-Spacing | Notes |
+| Role | Font | Weight | Size (pt) | Letter-Spacing | Notes |
 |---|---|---|---|---|---|
-| Hero Display | `Impact, 'Arial Narrow', Arial` | 52–72pt | 900 | 0.8px | Manuka substitute — always ≥45pt |
-| Large Headline | `'Helvetica Neue', Arial, sans-serif` | 22–26pt | 700 | 0px | Section and module headlines |
-| Heading Medium | `'Helvetica Neue', Arial, sans-serif` | 16–18pt | 700 | 0px | Card and tile headlines |
-| Heading Small | `'Helvetica Neue', Arial, sans-serif` | 13–14pt | 700 | 0px | Compact tile headlines |
-| Eyebrow / Kicker | `'Helvetica Neue', Arial, sans-serif` | 9–10pt | 300 | 1.43px | Thin-weight UPPERCASE before hero headline |
-| All-Caps Label | `'Courier New', Courier, monospace` | 7–9pt | 600 | 1.35px | UPPERCASE timestamps, category tags, button text |
-| Body Relaxed | `'Helvetica Neue', Arial, sans-serif` | 10–11pt | 400 | 0px | Body, deck copy — `line-height: 1.6` |
-| Body Compact | `'Helvetica Neue', Arial, sans-serif` | 8–9pt | 400 | 0px | Secondary captions, metadata |
-| Serif Pull | `Georgia, 'Times New Roman', serif` | 11–12pt | 400 | -0.12px | Review excerpts, magazine pull quotes |
+| Hero Display | `Pretendard Black` | 900 | 52–72pt | 0.8px | Always ≥45pt; use `line-height: 0.90–0.95` |
+| Large Headline | `Pretendard Bold` | 700 | 22–26pt | 0px | Section and module headlines |
+| Heading Medium | `Pretendard Bold` | 700 | 16–18pt | 0px | Card and tile headlines |
+| Heading Small | `Pretendard SemiBold` | 600 | 13–14pt | 0px | Compact tile headlines |
+| Eyebrow / Kicker | `Pretendard Light` | 300 | 9–10pt | 1.43px | Thin-weight UPPERCASE before hero headline |
+| All-Caps Label | `Pretendard SemiBold` | 600 | 7–9pt | 1.35px | UPPERCASE timestamps, category tags, button text |
+| Body Relaxed | `Pretendard` | 400 | 10–11pt | 0px | Body, deck copy — `line-height: 1.6` |
+| Body Compact | `Pretendard` | 400 | 8–9pt | 0px | Secondary captions, metadata |
+| Pull Quote | `Pretendard Light` | 300 | 11–12pt | -0.12px | Review excerpts, pull quotes |
+| Extra Thin | `Pretendard ExtraLight` | 200 | any | — | Ultra-light decorative text |
 
-**Substitution notes**: Impact renders at tighter line-height than Manuka. Use `line-height: 0.90–0.95` on hero text. `Courier New` covers all PolySans Mono use cases.
+**Font rule**: Use `font-family: 'Pretendard', sans-serif` everywhere and control weight via `font-weight`. The `html2pptx` converter maps weight to the exact Pretendard subfont (Black/ExtraBold/Bold/SemiBold/Medium/Regular/Light/ExtraLight/Thin).
 
 ### Border Radius Scale (pt)
 - **1.5pt** — inputs, micro badges (typewriter tag feel)

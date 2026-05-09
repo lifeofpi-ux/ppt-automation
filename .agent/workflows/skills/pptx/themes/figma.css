@@ -1,0 +1,382 @@
+/*
+ * Figma Editorial — Shared PPTX Slide Theme
+ * -------------------------------------------
+ * Inspired by figma.com marketing design system.
+ * Source: npx getdesign@latest add figma → DESIGN.md
+ *
+ * Copy to workspace/[project]/assets/css/figma.css
+ * Link in each slide HTML: <link rel="stylesheet" href="../css/figma.css">
+ *
+ * Slide canvas: 720pt × 405pt (960px × 540px)
+ * Font: Pretendard family (all figmaSans/figmaMono weights mapped to nearest Pretendard)
+ *
+ * figmaSans weight mapping → Pretendard:
+ *   320–340 → 200 (ExtraLight) or 300 (Light)
+ *   480     → 500 (Medium)
+ *   540     → 600 (SemiBold)
+ *   700     → 700 (Bold)
+ *   figmaMono → Pretendard Regular/SemiBold + letter-spacing simulation
+ */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+
+/* ─── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  overflow: hidden;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --fig-ink:          #000000;
+  --fig-canvas:       #ffffff;
+  --fig-inv-canvas:   #000000;
+  --fig-inv-ink:      #ffffff;
+  --fig-surface-soft: #f7f7f5;
+  --fig-hairline:     #e6e6e6;
+  --fig-hairline-soft:#f1f1f1;
+  --fig-success:      #1ea64a;
+  --fig-magenta:      #ff3d8b;
+
+  /* Color blocks — signature Figma pastel panels */
+  --fig-lime:   #dceeb1;
+  --fig-lilac:  #c5b0f4;
+  --fig-cream:  #f4ecd6;
+  --fig-mint:   #c8e6cd;
+  --fig-pink:   #efd4d4;
+  --fig-coral:  #f3c9b6;
+  --fig-navy:   #1f1d3d;
+
+  /* Border radius */
+  --fig-r-xs:   1.5pt;
+  --fig-r-sm:   4.5pt;
+  --fig-r-md:   6pt;
+  --fig-r-lg:   18pt;
+  --fig-r-xl:   24pt;
+  --fig-r-pill: 37.5pt;
+  --fig-r-full: 999pt;
+
+  /* Typography — Pretendard only */
+  --fig-ff: 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+/* ─── Base Layout ────────────────────────────────────────── */
+.fig-container {
+  width: 100%;
+  height: 100%;
+  padding: 32pt 40pt 28pt;
+  display: flex;
+  flex-direction: column;
+  background: var(--fig-canvas);
+  color: var(--fig-ink);
+}
+
+.fig-container--row {
+  flex-direction: row;
+  gap: 16pt;
+  padding: 28pt 36pt;
+}
+
+/* ─── Typography ─────────────────────────────────────────── */
+
+/* Display XL — figmaSans 340 → Pretendard Light (300) */
+.fig-display-xl {
+  font-family: var(--fig-ff);
+  font-size: 48pt;
+  font-weight: 300;
+  line-height: 1.00;
+  letter-spacing: -1.2pt;
+  color: var(--fig-ink);
+}
+
+/* Display LG — figmaSans 340 → Pretendard Light */
+.fig-display-lg {
+  font-family: var(--fig-ff);
+  font-size: 36pt;
+  font-weight: 300;
+  line-height: 1.10;
+  letter-spacing: -0.7pt;
+  color: var(--fig-ink);
+}
+
+/* Headline — figmaSans 540 → Pretendard SemiBold (600) */
+.fig-headline {
+  font-family: var(--fig-ff);
+  font-size: 15pt;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.15pt;
+  color: var(--fig-ink);
+}
+
+/* Subhead — figmaSans 340 → Pretendard Light */
+.fig-subhead {
+  font-family: var(--fig-ff);
+  font-size: 15pt;
+  font-weight: 300;
+  line-height: 1.35;
+  letter-spacing: -0.15pt;
+  color: var(--fig-ink);
+}
+
+/* Card Title — figmaSans 700 → Pretendard Bold */
+.fig-card-title {
+  font-family: var(--fig-ff);
+  font-size: 13pt;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--fig-ink);
+}
+
+/* Body LG — figmaSans 330 → Pretendard Light */
+.fig-body-lg {
+  font-family: var(--fig-ff);
+  font-size: 12pt;
+  font-weight: 300;
+  line-height: 1.40;
+  letter-spacing: -0.05pt;
+  color: var(--fig-ink);
+}
+
+/* Body — figmaSans 320 → Pretendard ExtraLight (200) */
+.fig-body {
+  font-family: var(--fig-ff);
+  font-size: 10pt;
+  font-weight: 200;
+  line-height: 1.45;
+  color: var(--fig-ink);
+}
+
+/* Body SM — figmaSans 330 → Pretendard Light */
+.fig-body-sm {
+  font-family: var(--fig-ff);
+  font-size: 8.5pt;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--fig-ink);
+}
+
+/* Eyebrow — figmaMono 400 → Pretendard Regular + UPPERCASE + wide tracking */
+.fig-eyebrow {
+  font-family: var(--fig-ff);
+  font-size: 7.5pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 2.5pt;
+  line-height: 1.30;
+  color: rgba(0,0,0,0.50);
+}
+
+/* Caption — figmaMono 400 → Pretendard Regular + UPPERCASE */
+.fig-caption {
+  font-family: var(--fig-ff);
+  font-size: 7pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 2pt;
+  line-height: 1.00;
+  color: rgba(0,0,0,0.40);
+}
+
+/* ─── Slide Header ───────────────────────────────────────── */
+.fig-header {
+  margin-bottom: 18pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+}
+
+/* ─── Cover Slide ────────────────────────────────────────── */
+/* White canvas, massive Light-weight headline at bottom-left */
+.fig-cover {
+  width: 100%;
+  height: 100%;
+  padding: 44pt 52pt 40pt;
+  background: var(--fig-canvas);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10pt;
+}
+
+/* ─── Color Block Slides (signature Figma pattern) ─────── */
+/* Full-slide pastel panels — the core visual rhythm of Figma */
+.fig-block {
+  width: 100%;
+  height: 100%;
+  padding: 38pt 52pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.fig-block--lime   { background: var(--fig-lime);  color: var(--fig-ink); }
+.fig-block--lilac  { background: var(--fig-lilac); color: var(--fig-ink); }
+.fig-block--cream  { background: var(--fig-cream); color: var(--fig-ink); }
+.fig-block--mint   { background: var(--fig-mint);  color: var(--fig-ink); }
+.fig-block--pink   { background: var(--fig-pink);  color: var(--fig-ink); }
+.fig-block--coral  { background: var(--fig-coral); color: var(--fig-ink); }
+.fig-block--navy   { background: var(--fig-navy);  color: var(--fig-inv-ink); }
+.fig-block--navy .fig-eyebrow { color: rgba(255,255,255,0.50); }
+.fig-block--navy .fig-body,
+.fig-block--navy .fig-body-sm { color: rgba(255,255,255,0.80); }
+
+/* Inner content column — like a poster/sticky note inside the block */
+.fig-block-inner {
+  max-width: 500pt;
+  display: flex;
+  flex-direction: column;
+  gap: 12pt;
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.fig-card {
+  background: var(--fig-canvas);
+  border: 1px solid var(--fig-hairline);
+  border-radius: var(--fig-r-lg);
+  padding: 14pt 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+}
+.fig-card--surface {
+  background: var(--fig-surface-soft);
+  border: none;
+  border-radius: var(--fig-r-md);
+}
+.fig-card--lime   { background: var(--fig-lime);  border: none; border-radius: var(--fig-r-lg); }
+.fig-card--lilac  { background: var(--fig-lilac); border: none; border-radius: var(--fig-r-lg); }
+.fig-card--cream  { background: var(--fig-cream); border: none; border-radius: var(--fig-r-lg); }
+.fig-card--mint   { background: var(--fig-mint);  border: none; border-radius: var(--fig-r-lg); }
+.fig-card--pink   { background: var(--fig-pink);  border: none; border-radius: var(--fig-r-lg); }
+.fig-card--coral  { background: var(--fig-coral); border: none; border-radius: var(--fig-r-lg); }
+.fig-card--navy   { background: var(--fig-navy);  border: none; border-radius: var(--fig-r-lg); color: var(--fig-inv-ink); }
+
+/* ─── Grids ──────────────────────────────────────────────── */
+.fig-grid {
+  display: grid;
+  gap: 9pt;
+  flex: 1;
+}
+.fig-grid--2col { grid-template-columns: repeat(2, 1fr); }
+.fig-grid--3col { grid-template-columns: repeat(3, 1fr); }
+.fig-grid--4col { grid-template-columns: repeat(4, 1fr); }
+
+/* ─── Pills & Badges ─────────────────────────────────────── */
+.fig-pill {
+  display: inline-block;
+  padding: 3pt 10pt;
+  border-radius: var(--fig-r-pill);
+  font-family: var(--fig-ff);
+  font-size: 7pt;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  line-height: 1;
+}
+.fig-pill--primary  { background: var(--fig-ink);         color: var(--fig-canvas); }
+.fig-pill--outline  { background: transparent; border: 1px solid var(--fig-ink); color: var(--fig-ink); }
+.fig-pill--surface  { background: var(--fig-surface-soft); color: var(--fig-ink); }
+.fig-pill--lime     { background: var(--fig-lime);        color: var(--fig-ink); }
+.fig-pill--lilac    { background: var(--fig-lilac);       color: var(--fig-ink); }
+.fig-pill--magenta  { background: var(--fig-magenta);     color: #ffffff; }
+.fig-pill--inv      { background: var(--fig-inv-canvas);  color: var(--fig-inv-ink); }
+
+/* ─── Insight / Takeaway Bar ─────────────────────────────── */
+.fig-insight {
+  margin-top: auto;
+  padding-top: 8pt;
+  border-top: 1px solid var(--fig-hairline);
+  display: flex;
+  align-items: baseline;
+  gap: 14pt;
+}
+.fig-insight-label {
+  font-family: var(--fig-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: var(--fig-ink);
+}
+.fig-insight-text {
+  font-family: var(--fig-ff);
+  font-size: 8.5pt;
+  font-weight: 300;
+  line-height: 1.4;
+  color: rgba(0,0,0,0.65);
+}
+
+/* ─── Divider / Section Break ────────────────────────────── */
+.fig-divider {
+  width: 100%;
+  height: 100%;
+  padding: 38pt 52pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8pt;
+  background: var(--fig-canvas);
+}
+.fig-divider--lime   { background: var(--fig-lime); }
+.fig-divider--lilac  { background: var(--fig-lilac); }
+.fig-divider--navy   { background: var(--fig-navy);  color: var(--fig-inv-ink); }
+.fig-divider--navy .fig-divider__chapter,
+.fig-divider--navy .fig-divider__title,
+.fig-divider--navy .fig-divider__sub { color: var(--fig-inv-ink); }
+
+.fig-divider__chapter {
+  font-family: var(--fig-ff);
+  font-size: 7.5pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 2.5pt;
+  color: rgba(0,0,0,0.45);
+}
+.fig-divider__title {
+  font-family: var(--fig-ff);
+  font-size: 44pt;
+  font-weight: 300;
+  line-height: 1.00;
+  letter-spacing: -1pt;
+  color: var(--fig-ink);
+}
+.fig-divider__sub {
+  font-family: var(--fig-ff);
+  font-size: 10pt;
+  font-weight: 300;
+  color: rgba(0,0,0,0.50);
+  margin-top: 4pt;
+}
+
+/* ─── Brand Strip ────────────────────────────────────────── */
+.fig-brand {
+  position: absolute;
+  bottom: 14pt;
+  right: 20pt;
+  font-family: var(--fig-ff);
+  font-size: 6.5pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  color: rgba(0,0,0,0.30);
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
+.fig-flex-col { display: flex; flex-direction: column; gap: 6pt; }
+.fig-flex-row { display: flex; flex-direction: row; gap: 10pt; align-items: flex-start; }
+.fig-stretch  { flex: 1; }
+.fig-center   { display: flex; align-items: center; justify-content: center; }
+.fig-ink      { color: var(--fig-ink); }
+.fig-inv      { color: var(--fig-inv-ink); }
+.fig-muted    { opacity: 0.50; }
+.fig-upper    { text-transform: uppercase; }
+.fig-mono     { letter-spacing: 1.5pt; font-weight: 400; text-transform: uppercase; }

@@ -48,6 +48,26 @@ You need raw XML access for: comments, speaker notes, slide layouts, animations,
 
 When creating a new PowerPoint presentation from scratch, use the **html2pptx** workflow to convert HTML slides to PowerPoint with accurate positioning.
 
+### Typography Rule (MANDATORY — ALL PROJECTS)
+
+> **EVERY font in every HTML slide MUST be `'Pretendard', sans-serif`. No other font family is permitted.**
+
+Control weight via `font-weight` only:
+
+| Weight | Pretendard Subfont | Typical Use |
+|---|---|---|
+| 900 | Pretendard Black | Hero display headlines |
+| 800 | Pretendard ExtraBold | Large callouts |
+| 700 | Pretendard Bold | Section titles, card headlines |
+| 600 | Pretendard SemiBold | Kickers, labels, UPPERCASE tags |
+| 500 | Pretendard Medium | Emphasized body |
+| 400 | Pretendard Regular | Body copy |
+| 300 | Pretendard Light | Eyebrows, pull quotes |
+| 200 | Pretendard ExtraLight | Decorative thin text |
+| 100 | Pretendard Thin | Ultra-light accents |
+
+The `html2pptx` converter maps `font-weight` to the exact Pretendard subfont automatically. **Never use Impact, Helvetica, Courier New, Georgia, or any other font — they will not render correctly in the PPTX output.**
+
 ### Project Structure (Mandatory)
 
 To keep the workspace clean, you **MUST** create and use a dedicated asset folder for each project. All generated files (scripts, images, HTML slides) should be contained within this folder.
@@ -61,9 +81,8 @@ workspace/
     │   │   └── generate_icons.js  <-- Copied from template and customized
     │   ├── images/                <-- All generated images (icons, backgrounds)
     │   ├── drafts/                <-- HTML draft screenshots for image-model reference
-    │   ├── objects/               <-- Decomposed visual object PNGs from IMAGE-2/SAM2
+    │   ├── objects/               <-- Decomposed visual object PNGs from IMAGE-2
     │   ├── svg/                   <-- Phosphor SVG icons and vector motifs
-    │   ├── thumbnails/            <-- Validation thumbnails
     │   └── slides/                <-- HTML slide files
     └── [project_name].pptx        <-- Final output file
 ```
@@ -77,73 +96,27 @@ To ensure this workflow operates seamlessly on both macOS and Windows:
 2.  **Shell Commands**: When using `run_command`, prefer standard commands available in both environments or use Node.js `fs` module for file operations (copy, move, delete) instead of shell commands (`cp`, `mv`, `rm`) to avoid syntax errors on Windows Command Prompt/PowerShell.
 3.  **Encoding**: Ensure all text files are read/written with `utf8` encoding to handle Korean characters correctly on Windows.
 
-### Design Principles for Sophisticated Presentations
-
-**CRITICAL**: To achieve a "very beautiful and sophisticated" look, follow these advanced design principles:
-
-1.  **High Information Density & Professional Polish**:
-    *   **Avoid Empty Slides**: While whitespace is important, slides must feel "rich" and "informative".
-    *   **Maximize Text Content**: Do not just use keywords. Use full sentences, detailed descriptions, and explanatory subtext. Provide context, specs, and data.
-    *   **Visual Texture**: Actively use **Badges, Tags, Status Pills, and Metadata** (e.g., "v2.0", "New", "High Priority") to add credibility and a professional "dashboard" feel.
-    *   **Complex Layouts**: Prefer multi-column layouts and **Bento Grids** over simple centered text.
-
-2.  **Typography-Driven Design**:
-    *   **Font Selection (Cross-Platform)**:
-        *   **Standard / Modern**: **Pretendard**, `Noto Sans KR`, `Malgun Gothic` (Windows), or `Apple SD Gothic Neo` (macOS).
-        *   **Emotional / Storytelling**: **Noto Serif KR**, **Gowun Batang**, or `Batang` (Windows).
-        *   *Instruction*: Always define a robust font stack in CSS: `font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;`.
-    *   **Contrast**: Pair a heavy weight (Bold/ExtraBold) header with a light/regular body.
-    *   **Contrast**: Pair a heavy weight (Bold/ExtraBold) header with a light/regular body.
-    *   **Tight Headings**: Use `letter-spacing: -0.02em` or `-0.03em` for large headings to make them look tighter and more professional.
-    *   **Relaxed Body**: Use `line-height: 1.6` for body text to improve readability and elegance.
-    *   **Font Weight**: Explicitly use `font-weight: 700` (or `bold`) in your CSS for headers to ensure they are rendered as **Bold** in PowerPoint.
-
-3.  **Visual Hierarchy & Asymmetry**:
-    *   Avoid boring center-aligned text for everything.
-    *   Use **Asymmetric Layouts**: 1/3 text + 2/3 image, or vice versa.
-    *   **Bento Grid**: Organize content in modular, card-based grids.
-
-4.  **Micro-Details & Badges**:
-    *   **Faithful Reproduction**: Small UI elements like badges, tags, pills, and status indicators add significant polish. Ensure these are faithfully implemented in HTML/CSS with precise padding, border-radius, and font sizes.
-    *   **Visual Interest**: These small objects break up text density and add a layer of "designed" feel.
-
-5.  **Key Color Strategy**:
-    *   **Define Early**: Set a primary "Key Color" (Brand Color) at the start of the design process.
-    *   **Consistent Application**: Use this color for primary actions, active states, key data points, and badges.
-    *   **Harmony**: Ensure the key color contrasts well with the background and is used sparingly (10-20% of the slide) to maintain impact.
-
-6.  **Art Direction with Generated Assets**:
-    *   **Do NOT rely on CSS gradients** (they fail in conversion).
-    *   **Do NOT use generic stock photos**.
-    *   **STRATEGY**: Use the `generate_design_assets.js` script (powered by OpenAI `gpt-image-2`, Image 2) to create bespoke backgrounds, textures, and illustrations. Template at `.agent/workflows/skills/pptx/scripts/generate_design_assets.template.js`.
-    *   **Image Styling (MANDATORY)**: ALWAYS apply `border-radius: 12pt` (or 16px) to all content images (screenshots, photos) to ensure a modern, premium look. Sharp corners look outdated.
-    *   **AI Background CSS Pattern**: Always combine the AI image with a CSS gradient overlay for text contrast:
-        ```css
-        .bg { background: #000 url('../images/bg_cover.png') center/cover no-repeat; }
-        .overlay { position: absolute; inset: 0; background: linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.42) 65%, rgba(0,0,0,0.18) 100%); }
-        ```
-    *   **CSS Fallback**: Always include a solid color fallback in the `background` shorthand so slides remain legible if the AI image hasn't been generated yet.
-
 ### Step 0: Design Selection Interaction (MANDATORY)
 
 **Before starting ANY work**, you MUST ask the user to select a design style. Present the following options clearly:
 
 > "어떤 디자인 스타일로 프레젠테이션을 생성할까요?"
-> 
-> 1. **Tech Showcase** (Modern, Glassmorphism, Bento Grid) - *Best for Apps/SaaS*
-> 2. **Minimalist Corporate** (Clean, White/Navy, Trustworthy) - *Best for Business/Reports*
-> 3. **Creative Storytelling** (Warm, Serif Fonts, Emotional) - *Best for Essays/Stories*
-> 4. **Dark Mode Neon** (Black, Glowing, High Contrast) - *Best for Trends/Gaming*
-> 5. **Structured Editorial Universe** (Premium proposal, process flows, architecture maps, insight bars) - *Best for strategy/education decks*
-> 6. **The Verge Editorial** (Dark canvas, acid-mint/ultraviolet accents, Impact headlines, StoryStream cards) - *Best for tech media, news, trend reports*
-> 7. **Custom Design** (Tell me your preference!)
+>
+> 1. **The Verge Editorial** (Dark canvas, acid-mint/ultraviolet accents, Pretendard Black headlines, StoryStream cards) — *Best for tech media, news, trend reports*
+> 2. **Figma Editorial** (White canvas, oversized Light-weight headlines, signature pastel color blocks — lime/lilac/mint/coral/navy) — *Best for product launches, tool docs, clean modern decks*
+> 3. **getdesign Import** — 템플릿 이름을 입력하면 자동으로 다운로드하여 새 스타일로 등록합니다 (`npx getdesign@latest add [name]`)
+> 4. **Custom Design** (Tell me your preference!)
 
 **Action based on selection**:
-- If **1-5 selected**: Read the corresponding template file from `.agent/workflows/skills/pptx/templates/`.
-- If **6 selected**: Read `.agent/workflows/skills/pptx/templates/the_verge_editorial.md` AND run the Verge CSS setup step below before writing any HTML.
-- If **7 selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+- If **1 (Verge Editorial) selected**: Run the Verge CSS setup below, then read `.agent/workflows/skills/pptx/templates/the_verge_editorial.md` before writing any HTML.
+- If **2 (Figma Editorial) selected**: Run the Figma CSS setup below, then read `.agent/workflows/skills/pptx/templates/figma_editorial.md` before writing any HTML.
+- If **3 (getdesign Import) selected**: Follow the **getdesign Template Import** workflow below to download, convert, and register a new style.
+- If **4 (Custom) selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+
+> **Note — Adding new styles**: Each registered style follows the same pattern: a shared CSS file in `.agent/workflows/skills/pptx/themes/` and a design spec in `.agent/workflows/skills/pptx/templates/`. Add a numbered option above and a CSS setup block below when registering a new style.
 
 #### The Verge Editorial — CSS Setup (Run ONCE per project)
+
 
 When the user selects **The Verge Editorial** style, copy the shared CSS file into the project before writing any slide HTML:
 
@@ -176,26 +149,166 @@ Then every slide HTML file starts with:
 - To update the visual system across all slides in a project, edit only `verge.css`.
 - To share the theme across multiple projects, copy `verge.css` into each project's `assets/css/` folder.
 
-### Using Design Templates
+#### Figma Editorial — CSS Setup (Run ONCE per project)
 
-You can use pre-defined design templates to quickly achieve high-quality results.
+When the user selects **Figma Editorial** style, copy the shared CSS file into the project:
 
-#### Available Templates
-- **Tech Showcase Style**: Modern, glassmorphic design for tech products.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/tech_showcase_style.md`
-- **Minimalist Corporate**: Clean, professional business design.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/minimalist_corporate.md`
-- **Creative Storytelling**: Emotional, narrative-driven design.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/creative_storytelling.md`
-- **Dark Mode Neon**: Futuristic, high-contrast dark design.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/dark_mode_neon.md`
-- **Academic Structured**: High-density, typography-driven design for education.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/academic_structured.md`
-- **Structured Editorial Universe**: Premium proposal-style deck with dark cover, structured process slides, architecture maps, comparison matrices, and bottom insight bars.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/structured_editorial_universe.md`
-- **The Verge Editorial**: Dark canvas (`#131313`), acid-mint + ultraviolet hazard accents, Impact display headlines, StoryStream pill-card grid. Best for tech media, news, trend, product launch decks.
-  - **Reference**: `.agent/workflows/skills/pptx/templates/the_verge_editorial.md`
-  - **Shared CSS**: `.agent/workflows/skills/pptx/themes/verge.css` (copy to `workspace/[project]/assets/css/verge.css`)
+```bash
+mkdir -p workspace/[project_name]/assets/css
+cp .agent/workflows/skills/pptx/themes/figma.css workspace/[project_name]/assets/css/figma.css
+```
+
+Then every slide HTML file starts with:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/figma.css">
+  <style>
+    /* Slide-specific overrides only — do NOT repeat figma.css rules here */
+  </style>
+</head>
+<body>
+  <!-- use .fig-* BEM classes from figma.css -->
+</body>
+</html>
+```
+
+### Registered Style Systems
+
+Each registered style is a pair: a **design spec** (`.md`) that defines the visual language, and a **shared CSS file** that implements it with CSS custom properties and BEM utility classes.
+
+| Style | Design Spec | Shared CSS | Source |
+|---|---|---|---|
+| **The Verge Editorial** | `templates/the_verge_editorial.md` | `themes/verge.css` | Hand-crafted |
+| **Figma Editorial** | `templates/figma_editorial.md` | `themes/figma.css` | getdesign (figma) |
+
+**Adding a new style**: Create `templates/[style_name].md` (color palette, typography, component classes, layout examples, quality checklist) and `themes/[style_name].css` (CSS custom properties + BEM utility classes). Add a row to the table above, a numbered option in Step 0, and a CSS setup block following the Verge pattern below.
+
+---
+
+### getdesign Template Import (Style 3 — Automated)
+
+`getdesign` is an npm tool that downloads design-system specification files (`DESIGN.md`) reverse-engineered from major product websites. Each `DESIGN.md` contains structured frontmatter (colors, typography, rounded, spacing, components) and a detailed prose description of the visual system.
+
+**When the user selects option 3**, follow this workflow to convert a getdesign template into a registered PPTX style:
+
+#### Step A — Check if already registered
+
+Check the Registered Style Systems table above. If `themes/[name].css` already exists, skip to Step F (CSS setup + HTML).
+
+#### Step B — Download the template
+
+```bash
+npx getdesign@latest add [template-name]
+```
+
+This writes `DESIGN.md` to the project root. Read the full file immediately after download.
+
+**Available templates** (non-exhaustive — run `npx getdesign@latest list` to see current registry):
+`figma`, `linear`, `notion`, `vercel`, `stripe`, `tailwind`, `shadcn`, `github`, `framer`, `loom`, `resend`, `supabase` …
+
+#### Step C — Extract design tokens from DESIGN.md
+
+Parse the YAML frontmatter to extract:
+
+1. **Colors** → CSS custom properties with `--[name]-` prefix
+   - Map each color key directly: `primary` → `--[name]-primary`, `canvas` → `--[name]-canvas`, etc.
+   - Identify the "ink" (dark text) color and "canvas" (background) color
+   - Identify accent / block colors for cards, dividers, pills
+
+2. **Typography** → Map `fontWeight` to Pretendard (ALL fonts become Pretendard — mandatory):
+   | DESIGN.md weight | Pretendard |
+   |---|---|
+   | ≤ 100 | Thin (100) |
+   | ≤ 200 | ExtraLight (200) |
+   | ≤ 300 | Light (300) |
+   | ≤ 340 | Light (300) |
+   | ≤ 400 | Regular (400) |
+   | ≤ 480 | Medium (500) |
+   | ≤ 540 | SemiBold (600) |
+   | ≤ 700 | Bold (700) |
+   | ≤ 800 | ExtraBold (800) |
+   | ≤ 900 | Black (900) |
+
+   Map `fontSize` from px to pt: multiply by **0.75** (e.g., 86px → 64.5pt → round to 65pt).
+   Clamp display sizes to the slide canvas max: hero ≤ 52pt, section title ≤ 28pt, body ≤ 11pt.
+
+3. **Rounded** → CSS custom properties scaled px → pt (`rounded.lg: 24px` → `--[name]-r-lg: 18pt`)
+
+4. **Spacing** → Reference values for padding/gap; scale px → pt
+
+5. **Components** → Identify the key component patterns (hero, color-block, card, pill, divider, insight bar) from the component list and prose description
+
+#### Step D — Generate `themes/[name].css`
+
+Create `.agent/workflows/skills/pptx/themes/[name].css` following this structure (use `figma.css` as a reference):
+
+```css
+/* [TemplateName] — Shared PPTX Slide Theme
+ * Source: npx getdesign@latest add [name]
+ * Font: Pretendard (all weights mapped from DESIGN.md)
+ * Slide canvas: 720pt × 405pt */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 720pt; height: 405pt; overflow: hidden;
+  background: [canvas-color]; color: [ink-color];
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif; }
+
+:root {
+  /* Extracted from DESIGN.md colors: */
+  --[name]-ink: [ink];
+  --[name]-canvas: [canvas];
+  /* ... all color tokens ... */
+  /* Radius tokens (px → pt): */
+  --[name]-r-md: [Xpt];
+  /* ... */
+}
+
+/* Layout, Typography, Cover, Color Blocks, Cards, Grid, Pills,
+   Insight Bar, Divider, Brand Strip — all following figma.css pattern */
+```
+
+**BEM prefix rule**: Use `.[initial]-*` where `[initial]` is a 2-4 character prefix derived from the template name (`fig-`, `lin-`, `str-`, `not-`, etc.). If there's a collision with an existing prefix, extend it.
+
+#### Step E — Generate `templates/[name]_editorial.md`
+
+Create `.agent/workflows/skills/pptx/templates/[name]_editorial.md` describing:
+- Design philosophy (derived from DESIGN.md overview prose)
+- Color palette table (all tokens with roles)
+- Typography table (mapped to Pretendard)
+- CSS class reference (all `.xxx-*` classes)
+- 4–5 slide pattern code examples (cover, divider, content grid, two-column, closing)
+- Slide rhythm recommendations
+- Quality checklist
+
+Follow `figma_editorial.md` as the canonical reference format.
+
+#### Step F — Register in pptx.md
+
+After creating the CSS and spec files, **update this file** (`pptx.md`):
+1. Add a row to the **Registered Style Systems** table
+2. Add a numbered option to the **Step 0** dialog
+3. Add a **CSS Setup block** (following the Figma Editorial pattern above)
+
+#### Step G — Delete DESIGN.md
+
+The `DESIGN.md` file in the project root is a source document, not a workspace artifact. Delete it after conversion:
+
+```bash
+rm DESIGN.md
+```
+
+#### Step H — Begin slide creation
+
+Copy the new CSS to the project and proceed with HTML authoring using the new `.[prefix]-*` classes.
+
+---
 
 ### Optimization: Parallel Asset Generation (HIGH PRIORITY)
 
@@ -232,7 +345,7 @@ When the user asks for slides like a polished consulting, strategy, education, p
 
 #### Phosphor SVG Native Workflow (MANDATORY when user asks for no images)
 
-When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or complains that image-generated quality is poor, switch to a **vector-native deck**. In this mode, do not use IMAGE-2, SAM2, raster backgrounds, or photographic/illustrative images. Build the entire deck from editable PowerPoint text, PPT-native shapes/connectors, tables, and Phosphor-derived SVG icons.
+When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or complains that image-generated quality is poor, switch to a **vector-native deck**. In this mode, do not use IMAGE-2, raster backgrounds, or photographic/illustrative images. Build the entire deck from editable PowerPoint text, PPT-native shapes/connectors, tables, and Phosphor-derived SVG icons.
 
 **Output contract**:
 - No AI-generated bitmap backgrounds or visual masters.
@@ -242,7 +355,7 @@ When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or c
 - Keep all meaningful text editable.
 - Prefer direct `pptxgenjs` construction over html2pptx when precise native shapes/connectors are more important than CSS fidelity.
 - If SVG insertion becomes rasterized by the export library, keep icons simple and separately selectable; never flatten an entire slide.
-- Visible slide copy must be audience-facing. Never show internal production/tool terms such as `PHOSPHOR`, `SVG`, `IMAGE-2`, `SAM2`, `PPTXGenJS`, `workflow`, `automation`, or `Codex` unless the user explicitly asks for a process/tooling deck.
+- Visible slide copy must be audience-facing. Never show internal production/tool terms such as `PHOSPHOR`, `SVG`, `IMAGE-2`, `PPTXGenJS`, `workflow`, `automation`, or `Codex` unless the user explicitly asks for a process/tooling deck.
 - Do not add a right-side panel, hero icon, orbit, rail, or diagram only because there is empty space. Every visual zone must have a clear `content_function`: process, comparison, hierarchy, loop, system boundary, data flow, decision, or synthesis.
 - Each content slide should use multiple semantic icons when density allows: one icon per concept card, process node, layer, row, or callout. Avoid repeating the same icon across unrelated items.
 - If a slide truly needs a complex visual that is hard to author as native shapes, IMAGE-2 may be used only for a text-free **diagrammatic** layer: lines, routes, system topology, abstract data flow, or structured 도식. It must not become decorative artwork, a photo, a raster background, or a container for final text.
@@ -305,7 +418,7 @@ When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or c
 6. **Wireframe HTML**: Build the slide with real text, icon placeholders, arrows, cards, dividers, and empty visual zones. Use stable absolute/flex/grid dimensions.
 7. **Draft screenshot**: Capture the wireframe into `assets/drafts/slideNN_draft.png`.
 8. **IMAGE-2 master visual generation**: For slides that need high-detail design, generate a text-free full-slide or zone-level master visual. The prompt must reference the draft composition and explicitly say that all labels/text remain empty.
-9. **SAM2 object decomposition**: When the master visual contains multiple logical design objects, decompose it into object PNGs using `slideNN_objects.json` bbox prompts. Use Sharp/Pillow bbox crops by default and optional SAM2 box-mask refinement for curved, glowing, or irregular objects.
+9. **Object decomposition**: When the master visual contains multiple logical design objects, decompose it into object PNGs using `slideNN_objects.json` bbox prompts. Use Sharp/Pillow bbox crops.
 10. **Layered HTML final**: Place decomposed object PNGs or generated zone layers with `data-pptx-layer="design"` or `data-pptx-capture="asset"` beneath editable text.
 11. **PPTX build and QA**: Convert with `html2pptx`, verify slide count, editable text count, selectable image layers, overflow, and previews.
 
@@ -320,24 +433,17 @@ When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or c
 - `decision/playbook`: decision tree, checklist rows, conditions, recommended prompts/actions.
 - `summary/synthesis`: principle grid, compact map, memory hooks, final thesis.
 
-**SAM2 object decomposition contract**:
+**Object decomposition contract**:
 - Add `data-object-id` to every visual placeholder that should become a separate PPT object after IMAGE-2 detailing.
 - Capture draft screenshots with `.agent/workflows/skills/pptx/scripts/capture_slide_drafts.template.js`; it writes both `slideNN_draft.png` and `slideNN_objects.json`.
 - Generate `slideNN_visual_master.png` with IMAGE-2 when one high-detail slide-level visual should be cut into pieces.
 - Copy `.agent/workflows/skills/pptx/scripts/decompose_visual_objects.template.py` to `workspace/[project]/assets/scripts/decompose_visual_objects.py`.
-- Run bbox-only decomposition first:
+- Run bbox decomposition:
   ```bash
   python workspace/[project]/assets/scripts/decompose_visual_objects.py --slide slide03
   ```
-- Use SAM2 refinement only for irregular or overlapping objects:
-  ```bash
-  set SAM2_CHECKPOINT=C:\models\sam2.1_hiera_small.pt
-  set SAM2_MODEL_CFG=configs/sam2.1/sam2.1_hiera_s.yaml
-  python workspace/[project]/assets/scripts/decompose_visual_objects.py --slide slide03 --sam2
-  ```
 - Decomposed PNGs preserve their source bbox canvas size by default for reliable PPTX positioning. Use `--trim-alpha` only when offset handling is implemented.
 - Reinsert output PNGs from `assets/objects/slideNN/` into final HTML as separate absolutely positioned image layers.
-- Do not use SAM2 to invent the object list. The HTML object manifest is the source of truth; SAM2 only refines masks inside planned bbox regions.
 
 **Template family**:
 - `structured_dark_cover`: dark navy/purple cover with monumental typography, orbital visual field, and optional bottom metadata strip.
@@ -383,10 +489,9 @@ When the user asks for "이미지 없이", "SVG 기반", "Phosphor 기반", or c
 2. Add `data-object-id` and `data-object-kind` to any visual placeholder that should become a selectable object after decomposition.
 3. Render/screenshot the draft slide to `workspace/[project]/assets/drafts/slideNN_draft.png` and write `slideNN_objects.json`. Copy `.agent/workflows/skills/pptx/scripts/capture_slide_drafts.template.js` to `workspace/[project]/assets/scripts/capture_slide_drafts.js` and run `node workspace/[project]/assets/scripts/capture_slide_drafts.js`.
 4. Use the draft screenshot as an image reference for the image-generation script. The image model should read the full slide composition and generate **text-free visual master layers** or transparent zone layers.
-5. If a master layer contains multiple objects, run `decompose_visual_objects.py` to crop object PNGs using the HTML bbox manifest and optional SAM2 box masks.
+5. If a master layer contains multiple objects, run `decompose_visual_objects.py` to crop object PNGs using the HTML bbox manifest.
 6. Place generated/decomposed PNG/SVG assets back into the HTML as absolutely positioned layers using `data-pptx-layer="design"` or `data-pptx-capture="asset"`.
-7. Run `html2pptx`. The converter will capture marked design layers as individual selectable image objects, then place editable text above them.
-8. Validate thumbnails. If a design object conflicts with text, regenerate or decompose only that object and keep the text objects unchanged.
+7. Run `html2pptx`. The converter will capture marked design layers as individual selectable image objects, then place editable text above them. If a design object conflicts with text, regenerate or decompose only that object and keep the text objects unchanged.
 
 **HTML layer hints**:
 ```html
@@ -604,175 +709,13 @@ p { font-size: 11pt; line-height: 1.5; }       /* Body max 12pt */
 
 **Remember**: The html2pptx script requires content to fit within `720pt x 405pt` (with a 0.5" bottom margin). Always leave headroom for slight browser rendering variations.
 
-#### Modern Design Aesthetics & CSS Snippets
-
-**1. Sophisticated Minimalist Aesthetic**
-Achieve a premium look through **subtle textures**, **perfect typography**, and **generous whitespace**. Avoid harsh contrasts; use soft, harmonious color palettes.
-
-**CRITICAL: modernized Card Design (The "Sample" Style)**
-Instead of outdated "thick colored borders" (e.g., `border-left: 5px solid color`), use **Soft Shadow Cards**.
-- **PROHIBITED**: `border-left: 4pt solid ...`, `border-bottom: 5px solid ...`, or any thick, crude borders.
-- **Concept**: A "floating" white card on a soft gray/colored background.
-- **Reference**: High rounded corners, soft diffused shadow, no visible border lines.
-- **Accents**: Use text color or small, subtle indicators (e.g., icons, tags) for color accents, NOT thick lines.
-
-```css
-/* Sophisticated Theme Variables */
-:root {
-  --bg-color: #F5F5F7;      /* Soft Off-White / Light Gray */
-  --text-primary: #1D1D1F;  /* Soft Black (Apple Style) */
-  --text-secondary: #86868B;
-  --accent-color: #0066CC;  /* Refined Blue */
-  --card-bg: #FFFFFF;
-}
-
-/* Premium Feature Card (Replaces Thick Border Styles) */
-.feature-card {
-  background: var(--card-bg);
-  border-radius: 18pt;      /* Highly rounded corners (24px) */
-  padding: 24pt;            /* Generous padding */
-  /* Premium Shadow: Soft ambient + crisp directional */
-  box-shadow: 0 12pt 36pt rgba(0,0,0,0.06), 0 4pt 12pt rgba(0,0,0,0.03);
-  border: none;             /* NO BORDERS */
-  display: flex;
-  flex-direction: column;
-  gap: 12pt;
-  transition: transform 0.2s ease;
-}
-
-/* Optional: Icon container within card */
-.card-icon-box {
-  width: 40pt;
-  height: 40pt;
-  background: #F2F2F7;
-  border-radius: 50%;       /* Circular icon backing */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8pt;
-}
-```
-
-**2. Detailed Bento Grid (Horizontal First)**
-Use highly detailed, dashboard-style layouts. Prioritize **Horizontal Layouts** (Left-to-Right) over vertical stacks to save vertical space and improve readability.
-
-```css
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 Columns for high density */
-  gap: 16pt;
-  height: 100%;
-}
-.bento-item {
-  background: rgba(255, 255, 255, 0.7); /* Glass-like opacity */
-  border-radius: 16pt;
-  padding: 20pt;
-  display: flex;
-  flex-direction: row; /* HORIZONTAL PREFERENCE */
-  align-items: flex-start;
-  gap: 16pt;
-  box-shadow: 0 4pt 16pt rgba(0,0,0,0.04);
-  border: 1px solid rgba(255, 255, 255, 0.6); /* Subtle border details, NOT thick */
-}
-/* Detailed content structure inside bento item */
-.item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4pt;
-}
-```
-
-**3. Sophisticated Typography**
-```css
-h1 {
-  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-  font-weight: 800;
-  font-size: 40pt;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-  margin-bottom: 20pt;
-}
-p {
-  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-  font-weight: 400;
-  font-size: 16pt;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-```
-
-#### Visual Details Options
-
-**Layout Innovations**:
-- **Asymmetric Split**: 40% text column (left) + 60% full-bleed image/visual (right).
-- **Floating Cards**: Content floats on top of a subtle, abstract background.
-- **Overlap**: Allow an image to slightly overlap a text box (using negative margins or absolute positioning - *test carefully*).
-
-**Background Treatments**:
-- **Darkening Overlay**: When using image backgrounds, ALWAYS apply a dark gradient overlay to ensure text readability.
-  ```css
-  .slide-container {
-      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../images/bg.png');
-  }
-  ```
-- **Abstract Shapes**: Use large, soft blobs or geometric shapes in the background (generated image) to guide the eye.
-
-**Icon & Data Visualization**:
-- **Minimalist Icons**: Use `react-icons` (Feather or Heroicons) converted to PNG. Keep them small and framed in a circle.
-- **Big Numbers**: For stats, make the number HUGE (e.g., 60pt+) and the label small.
-- **Clean Charts**: Remove gridlines, remove axis lines, direct label data points.
-
-**Image Styling Guidelines**:
-- **Width Limit (CRITICAL)**: Images should generally **NOT exceed 1/3 (33%)** of the slide's total width. This ensures sufficient space for detailed text and prevents layout imbalance.
-  - *Exception*: Full-bleed background images or specific "Visual Only" slides.
-- **Rounded Corners**: Apply `border-radius: 12px` (approx. 9pt) to images for a modern, friendly look.
-- **Aspect Ratio**: Always use `object-fit: cover` for content images to ensure they fill their container without distortion. **NEVER use `object-fit: contain` for content images** as it leaves empty space.
-- **Icon Reset**: Explicitly set `object-fit: contain` for icons to prevent them from being cropped.
-- **No Borders**: Do NOT add borders to images. Let them blend or stand out via shadow/contrast.
-- **Shadows**: Use `box-shadow` to add depth. Example: `box-shadow: 0 8px 24px rgba(0,0,0,0.2);`.
-
-#### Color Palette Selection (Sophisticated)
-
-**Sophisticated Combinations**:
-1.  **Midnight & Neon**: Deep Blue/Black background + Neon Purple/Blue accents (Tech/Future).
-2.  **Earth & Stone**: Warm Beige/Sand background + Charcoal text + Sage Green accents (Natural/Calm).
-3.  **Editorial**: Off-white background + Sharp Black text + One bold accent color (Red or Electric Blue).
-4.  **Monochrome Layering**: Different shades of a single color (e.g., 5 shades of Blue) for depth.
-
-**Rule of Thumb**:
--   **60%** Neutral (White, Beige, Soft Gray, or Dark Navy)
--   **30%** Secondary (Brand color or complementary tone)
--   **10%** Accent (Pop color for buttons, highlights, key numbers)
-
-### Layout Tips
-**When creating slides with charts or tables:**
-- **Horizontal Layout (MANDATORY)**: Always prioritize a Left-to-Right flow.
-  - **Left (60-70%)**: Detailed Text, Bullet Points, Explanations.
-  - **Right (30-40%)**: Image, Chart, or Visual (Max 1/3 width preferred).
-- **Two-column layout (PREFERRED)**: Use a header spanning the full width, then two columns below.
-- **Full-slide layout**: Let the featured content (chart/table) take up the entire slide for maximum impact and readability
-- **NEVER vertically stack**: Do not place charts/tables below text in a single column - this causes poor readability and layout issues
-
 ### Workflow
 1. **MANDATORY - READ ENTIRE FILE**: Read [`html2pptx.md`](skills/pptx/docs/html2pptx.md) completely from start to finish. **NEVER set any range limits when reading this file.** Read the full file content for detailed syntax, critical formatting rules, and best practices before proceeding with presentation creation.
 
 2. **Art Direction & Asset Generation (Crucial Step)**:
-   - **Define the Vibe & Key Color**: Decide on the color palette and visual style based on the presentation's content and purpose. **Explicitly define a Key Color** to be used throughout.
-     - **Corporate/Business**: Clean, professional, data-driven (Blues, Grays, White space)
-     - **Creative/Storytelling**: Emotional, artistic, narrative-driven (Warm tones, Illustrations, Textures)
-     - **Tech/Innovation**: Modern, futuristic, dynamic (Neon accents, Dark backgrounds, Geometric shapes)
-     - **Educational/Academic**: Clear, structured, informative (Earth tones, Serif fonts, Diagrams)
-   
-   - **Creative Slide Structures**: Design each slide with a structure that matches its content purpose:
-     - **Title/Cover Slides**: Full-bleed AI-generated background (`bg_cover.png`) with `.bg` + `.overlay` + content layers. Keep left 60% dark for text.
-     - **Section Dividers (Interstitial)**: Between every major chapter, add a full-bleed divider slide using `bg_section_[n].png`. Structure: `.bg` + `.overlay` + chapter number eyebrow + large heading + 1-line descriptor + bottom timeline tag. Template: `slide_sec01.html` in any project that uses this skill.
-     - **Story/Narrative**: Large visual (60-70%) + minimal text, or split-screen with image and quote
-     - **Concept Explanation**: Bento grid with cards (use `bg_card_glass.png` / `bg_card_dark.png` for card textures), or asymmetric 1/3 text + 2/3 illustration
-     - **Process/Timeline**: Horizontal flow with icons/numbers, or vertical stepped layout
-     - **Comparison**: Side-by-side split, or overlapping cards with different colors
-     - **Key Message/Quote**: Centered text with decorative elements, or text on colored background block
-     - **Data/Statistics**: Big number + context, or chart with minimal supporting text
-     - **List/Points**: Icon-prefixed items in grid or vertical stack with glassmorphism cards (use AI card textures)
+   - **Design Direction**: For registered styles (e.g., Verge Editorial), color palette, typography, spacing, and component classes are fully defined in the style's spec and shared CSS. Read the spec before writing any HTML. For custom designs, define a Key Color and visual style based on content and purpose.
+
+   - **Slide Structure**: For registered styles, slide layout patterns (cover, section divider, content grid, timeline, stat callout, etc.) are fully specified in the style's design spec file. Read the spec before writing any HTML. For custom designs, define slide types based on content purpose.
    
    - **Generate Assets FIRST (MANDATORY)**: Before writing ANY HTML, you **MUST** generate a comprehensive set of custom assets. **Generic placeholders or CSS-only visuals are FORBIDDEN.**
 
@@ -793,6 +736,29 @@ p {
          ```
 
    - **2. Generate AI Backgrounds & Visuals (OpenAI `gpt-image-2` — Image 2)**:
+      - **API Key — Ask Before Running (MANDATORY)**:
+        Before running any image generation script, check whether the user has set `OPENAI_API_KEY`. If it is not already set in the environment, say exactly this:
+        > "AI 배경 이미지를 생성하려면 OpenAI API 키가 필요합니다.
+        > 키를 아래 두 가지 방법 중 하나로 입력해 주세요.
+        >
+        > **방법 1 — 터미널에서 즉시 설정 (세션 한정)**
+        > ```bash
+        > # macOS/Linux
+        > export OPENAI_API_KEY="sk-..."
+        > # Windows
+        > set OPENAI_API_KEY=sk-...
+        > ```
+        >
+        > **방법 2 — `.env` 파일에 저장 (영구, 권장)**
+        > 프로젝트 루트에 `.env` 파일을 만들고 아래 내용을 입력하세요:
+        > ```
+        > OPENAI_API_KEY=sk-...
+        > ```
+        > `.env` 파일은 `.gitignore`에 등록되어 있어 절대 커밋되지 않습니다.
+        >
+        > 키를 입력하셨으면 알려주세요. 그러면 이미지 생성을 시작하겠습니다."
+
+        Do not proceed with image generation until the user confirms the key is set.
       - **Rule**: For EVERY background, texture, illustration, and premium design layer, use the `generate_design_assets.js` script powered by OpenAI image models. **Do NOT use CSS gradients as the primary visual.**
       - **Draft-aware requirement**: For important slides, first screenshot the wireframe HTML draft into `workspace/[project_name]/assets/drafts/slideNN_draft.png`, then configure `ASSETS` entries with `inputImage: 'slideNN_draft.png'` so the image model can read the full slide composition before generating the final text-free visual layer.
       - **Layering requirement**: Generate separate assets for separate logical objects whenever practical (`slide03_hero_visual.png`, `slide03_card_skin_1.png`, `slide03_diagram_glow.png`). Place each asset back in HTML with `data-pptx-layer="design"` so it becomes an individually selectable PNG layer in the PPTX.
@@ -824,13 +790,9 @@ p {
            ```bash
            node workspace/[project_name]/assets/scripts/generate_design_assets.js bg_cover
            ```
-      - **Required Asset Types**:
-        - **`bg_cover.png`** (1920×1080): Full-bleed title slide dark atmospheric background
+      - **Typical Asset Types** (exact set is defined in the style's spec file):
+        - **`bg_cover.png`** (1920×1080): Full-bleed title slide background
         - **`bg_section_[n].png`** (1920×1080): One per major chapter/section — used in interstitial divider slides
-        - **`bg_content_light.png`** (1920×1080): Ultra-subtle near-white texture for light content slides
-        - **`bg_content_dark.png`** (1920×1080): Ultra-subtle dark texture for dark content slides
-        - **`bg_card_glass.png`** (1024×1024): Frosted glass card background for light bento items
-        - **`bg_card_dark.png`** (1024×1024): Dark glass card background for dark bento items
         - **`slideNN_visual_master.png`** (1920×1080): Text-free full-slide detailed visual structure to decompose into object PNGs
         - **`slideNN_[object]_layer.png`** (1920×1080 transparent overlay or object-sized PNG): Text-free draft-aware layer for one slide object or visual zone
       - **Prompt Writing Rules** (CRITICAL for quality):
@@ -841,19 +803,18 @@ p {
         - Match the project's visual identity (colors, mood, style)
         - Use photography/art terms: "cinematic", "volumetric light", "depth of field", "16:9"
         - For card textures: "square 1:1", "material texture", "no shapes or objects"
+      - **Hero & Section Backgrounds (MANDATORY style rule)**:
+        - **Cover (hero) slide background**: Generate a **subtle, sophisticated** dark ambient field — deep near-black base with a soft gradient bloom (acid-mint `#3cffd0` or ultraviolet `#5200ff`), faint particle scatter, or quiet noise texture. The mood is editorial restraint, not neon spectacle. Avoid loud color fills, busy patterns, or high-saturation explosions. Prompt keywords: `"subtle ambient glow"`, `"deep space gradient"`, `"quiet cinematic mood"`, `"muted luminescence"`, `"editorial calm"`.
+        - **Section divider (간지) backgrounds**: Use an even softer treatment than the cover — near-monochrome dark surface with a barely-visible tonal shift or micro-texture. Section slides separate chapters and must not compete with content slides for visual weight. Prompt keywords: `"minimal dark texture"`, `"whisper gradient"`, `"low-contrast tonal surface"`, `"typographic atmosphere"`.
+        - **Shared constraint**: Both cover and section backgrounds must keep the left 55–65% of the canvas **dark and uncluttered** so Pretendard headline text remains legible at high contrast without a scrim overlay.
       - **CSS Integration Pattern** (after images are generated):
-        ```css
-        /* Slide background: AI image + gradient overlay */
-        .bg    { background: #000 url('../images/bg_cover.png') center/cover no-repeat; }
-        .overlay { position:absolute; inset:0; background: linear-gradient(105deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.42) 65%, rgba(0,0,0,.18) 100%); }
-
-        /* Bento card: AI glass texture with color tint */
-        .bento-item       { background: rgba(255,255,255,.92) url('../images/bg_card_glass.png') center/cover no-repeat; }
-        .bento-item.dark  { background: rgba(17,17,17,.95) url('../images/bg_card_dark.png') center/cover no-repeat; }
-        .design-layer     { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
-        ```
+        > Style-specific CSS integration (background class names, color overlays, image sizing) is defined in the style's design spec and shared CSS. Refer to the spec. The following shows the universal pattern for marking a separately selectable design layer:
         ```html
         <img class="design-layer" data-pptx-layer="design" src="../images/slide03_hero_layer.png" />
+        ```
+        ```css
+        /* Universal: separately selectable design layer */
+        .design-layer { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
         ```
       - **Save**: All generated assets go to `workspace/[project_name]/assets/images/`.
 
@@ -864,12 +825,6 @@ p {
         ```bash
         cp .agent/workflows/skills/pptx/scripts/decompose_visual_objects.template.py workspace/[project_name]/assets/scripts/decompose_visual_objects.py
         python workspace/[project_name]/assets/scripts/decompose_visual_objects.py --slide slide03
-        ```
-      - **SAM2 refinement**:
-        ```bash
-        set SAM2_CHECKPOINT=C:\models\sam2.1_hiera_small.pt
-        set SAM2_MODEL_CFG=configs/sam2.1/sam2.1_hiera_s.yaml
-        python workspace/[project_name]/assets/scripts/decompose_visual_objects.py --slide slide03 --sam2
         ```
       - **Output**: `workspace/[project_name]/assets/objects/slideNN/*.png` plus `slideNN_decomposition.json`.
       - **Integration**: Place each object PNG back in HTML with `data-pptx-layer="design"` so it becomes separately selectable in PowerPoint.
@@ -907,53 +862,6 @@ p {
      ```
    - Add charts and tables to placeholder areas using PptxGenJS API
    - Save the presentation using `pptx.writeFile()`
-
-5. **Visual validation**: Generate thumbnails and inspect for layout issues
-   - Create thumbnail grid: `python .agent/workflows/skills/pptx/scripts/thumbnail.py workspace/[project_name]/[project_name].pptx workspace/[project_name]/assets/thumbnails --cols 4`
-   - Read and carefully examine the thumbnail image for:
-     - **Text cutoff**: Text being cut off by header bars, shapes, or slide edges
-     - **Text overlap**: Text overlapping with other text or shapes
-     - **Positioning issues**: Content too close to slide boundaries or other elements
-     - **Contrast issues**: Insufficient contrast between text and backgrounds
-   - If issues found, adjust HTML margins/spacing/colors and regenerate the presentation
-   - Repeat until all slides are visually correct
-
-### Step 6: (Essential) Create Web Viewer
-
-**MANDATORY**: To provide immediate verification and a premium delivery experience, you **MUST** create a web-based viewer for every presentation project.
-
-**Use the Web Viewer Template:**
-- **Template Location**: `.agent/workflows/skills/pptx/templates/web_viewer_template.html`
-- **Action**: Copy this template to `workspace/[project_name]/index.html` and customize it.
-
-**Key Features**:
-- **Premium Dark Theme**: Sleek, dark background with subtle gradients and glassmorphism effects
-- **Floating Navigation**: Semi-transparent bottom-center navigation bar with blur backdrop
-- **Smooth Animations**: Fade transitions, hover effects, and micro-interactions
-- **Progress Indicator**: Bottom progress bar showing current position
-- **Keyboard Support**: Arrow keys and Space for navigation
-- **Fullscreen Mode**: Toggle fullscreen with button or F key
-- **Responsive Scaling**: Automatically fits 16:9 slides to any screen size
-- **Touch Gestures**: Swipe left/right on touch devices
-
-**Template Variables to Replace:**
-- `{{PROJECT_NAME}}`: Replace with your project title
-- `{{SLIDES_LIST}}`: Replace with JavaScript array of slide HTML content (inline)
-
-**Alternative (Iframe Approach)**: 
-If simple integration is preferred, use the Iframe approach (as demonstrated in previous steps):
-1. Create `index.html`
-2. Use an `<iframe>` to load `assets/slides/slide1.html`
-3. Implement JavaScript logic to switch the `src` attribute of the iframe to navigate between slides.
-
-**Alternative**: If generating a standalone viewer, inline all slide HTML content using:
-```javascript
-const slides = [
-  `<!DOCTYPE html>...slide1 content...`,
-  `<!DOCTYPE html>...slide2 content...`,
-  // ...
-];
-```
 
 ## Editing an existing PowerPoint presentation
 
@@ -1192,37 +1100,6 @@ When you need to create a presentation that follows an existing template's desig
      - slide-0/shape-2: overflow worsened by 1.25" (was 0.00", now 1.25")
    ```
 
-## Creating Thumbnail Grids
-
-To create visual thumbnail grids of PowerPoint slides for quick analysis and reference:
-
-```bash
-python .agent/workflows/skills/pptx/scripts/thumbnail.py template.pptx [output_prefix]
-```
-
-**Features**:
-- Creates: `thumbnails.jpg` (or `thumbnails-1.jpg`, `thumbnails-2.jpg`, etc. for large decks)
-- Default: 5 columns, max 30 slides per grid (5×6)
-- Custom prefix: `python .agent/workflows/skills/pptx/scripts/thumbnail.py template.pptx my-grid`
-  - Note: The output prefix should include the path if you want output in a specific directory (e.g., `workspace/my-grid`)
-- Adjust columns: `--cols 4` (range: 3-6, affects slides per grid)
-- Grid limits: 3 cols = 12 slides/grid, 4 cols = 20, 5 cols = 30, 6 cols = 42
-- Slides are zero-indexed (Slide 0, Slide 1, etc.)
-
-**Use cases**:
-- Template analysis: Quickly understand slide layouts and design patterns
-- Content review: Visual overview of entire presentation
-- Navigation reference: Find specific slides by their visual appearance
-- Quality check: Verify all slides are properly formatted
-
-**Examples**:
-```bash
-# Basic usage
-python .agent/workflows/skills/pptx/scripts/thumbnail.py presentation.pptx
-
-# Combine options: custom name, columns
-python .agent/workflows/skills/pptx/scripts/thumbnail.py template.pptx analysis --cols 4
-```
 
 ## Converting Slides to Images
 
@@ -1356,10 +1233,3 @@ async function checkOverflow(directory) {
 const slidesDir = process.argv[2] || path.join(__dirname, 'assets/slides');
 checkOverflow(slidesDir).catch(console.error);
 ```
-- **LibreOffice**: `brew install --cask libreoffice` (for PDF conversion)
-  - Provides `soffice` command for PPTX to PDF conversion
-- **Poppler**: `brew install poppler` (for pdftoppm to convert PDF to images)
-  - Provides `pdftoppm` command for PDF to image conversion
-  - Required for thumbnail generation
-
-**Note**: On macOS, both LibreOffice and Poppler are required for the thumbnail generation workflow to work properly.

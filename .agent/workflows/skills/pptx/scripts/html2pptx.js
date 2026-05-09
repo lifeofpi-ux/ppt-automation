@@ -126,43 +126,43 @@ function addElements(slideData, targetSlide, pres) {
       let adjustedX = el.position.x;
       let adjustedW = el.position.w;
 
-      // Always add a small buffer to width to prevent "last word wrapping" due to font rendering differences
-      // PowerPoint's text rendering is often slightly wider than browser's
-      const widthBuffer = (el.position.w * 0.05) + 0.15; // 5% + 0.15 inch
-
-      const align = el.style.align;
-      if (align === 'center') {
-        adjustedX = el.position.x - (widthBuffer / 2);
-        adjustedW = el.position.w + widthBuffer;
-      } else if (align === 'right') {
-        adjustedX = el.position.x - widthBuffer;
-        adjustedW = el.position.w + widthBuffer;
-      } else {
-        // Left align
-        adjustedW = el.position.w + widthBuffer;
-      }
+      // Padded elements (pills, cards) are captured as component PNGs whose
+      // bounds must match the text box exactly — no buffer added.
+      // Plain text elements (h1, p) also use exact HTML bounds to prevent
+      // text boxes from overflowing adjacent card PNG boundaries.
+      const hasCssPadding = (el.style.paddingLeft > 0 || el.style.paddingRight > 0);
 
       const textOptions = {
         x: adjustedX,
         y: el.position.y,
         w: adjustedW,
-        h: el.position.h, // Keep original height, let it overflow if needed or auto-fit
+        h: el.position.h,
         fontSize: el.style.fontSize,
         fontFace: el.style.fontFace,
         color: el.style.color,
         bold: el.style.bold,
         italic: el.style.italic,
         underline: el.style.underline,
-        valign: 'top', // Always top align to match HTML flow
-        lineSpacing: el.style.lineSpacing,
-        paraSpaceBefore: el.style.paraSpaceBefore,
-        paraSpaceAfter: el.style.paraSpaceAfter,
-        inset: 0,  // Remove default PowerPoint internal padding
-        wrap: true, // Always enable wrapping to support multi-line text
-        autoFit: false // Do not auto-shrink text
+        valign: 'top',
+        // Pills: force native PPTX 1.0 line spacing multiple.
+        // All other elements: use absolute pt value derived from CSS line-height.
+        ...(hasCssPadding
+          ? { lineSpacingMultiple: 1 }
+          : { lineSpacing: el.style.lineSpacing }),
+        // Use CSS padding as text body margin so pill/card text sits
+        // at the same inset as the HTML layout. Falls back to 0 (removes
+        // PowerPoint's default 0.1" body margin) when there is no padding.
+        // pptxgenjs margin array order: [L, R, B, T] in POINTS.
+        margin: (el.style.paddingLeft > 0 || el.style.paddingTop > 0)
+          ? [el.style.paddingLeft, el.style.paddingRight, el.style.paddingBottom, el.style.paddingTop]
+          : 0,
+        // Padded elements (pills): force center so text mirrors the visual
+        // centering that equal left/right padding creates in HTML.
+        align: hasCssPadding ? 'center' : (el.style.align || undefined),
+        wrap: true,
+        autoFit: false
       };
 
-      if (el.style.align) textOptions.align = el.style.align;
       if (el.style.margin) textOptions.margin = el.style.margin;
       if (el.style.rotate !== undefined) textOptions.rotate = el.style.rotate;
       if (el.style.transparency !== null && el.style.transparency !== undefined) textOptions.transparency = el.style.transparency;
@@ -212,23 +212,18 @@ async function extractSlideData(page) {
       return text;
     };
 
-    // Font Mapping
-    const mapFont = (family, weight) => {
-      const normalizedFamily = family.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
-      const numWeight = parseInt(weight);
-
-      // Display / infographic titles → Impact
-      if (normalizedFamily.includes('impact') || normalizedFamily.includes('arial narrow')) {
-        return { name: 'Impact', bold: false };
-      }
-
-      // Code blocks → Courier New
-      if (normalizedFamily.includes('courier') || normalizedFamily.includes('monospace')) {
-        return { name: 'Courier New', bold: numWeight >= 600 };
-      }
-
-      // All Korean / sans-serif body text → Pretendard SemiBold
-      return { name: 'Pretendard SemiBold', bold: false };
+    // Font Mapping — all fonts resolve to the Pretendard weight family
+    const mapFont = (_family, weight) => {
+      const numWeight = parseInt(weight) || 400;
+      if (numWeight >= 900) return { name: 'Pretendard Black',      bold: false };
+      if (numWeight >= 800) return { name: 'Pretendard ExtraBold',  bold: false };
+      if (numWeight >= 700) return { name: 'Pretendard Bold',       bold: false };
+      if (numWeight >= 600) return { name: 'Pretendard SemiBold',   bold: false };
+      if (numWeight >= 500) return { name: 'Pretendard Medium',     bold: false };
+      if (numWeight >= 400) return { name: 'Pretendard',            bold: false };
+      if (numWeight >= 300) return { name: 'Pretendard Light',      bold: false };
+      if (numWeight >= 200) return { name: 'Pretendard ExtraLight', bold: false };
+      return                       { name: 'Pretendard Thin',       bold: false };
     };
 
     // Check if an element is visible
@@ -437,16 +432,45 @@ async function extractSlideData(page) {
           fontFace: fontInfo.name,
           color: rgbToHex(computed.color),
           align: computed.textAlign,
-          lineSpacing: pxToPoints(computed.lineHeight) || pxToPoints(computed.fontSize) * 1.2,
+          // Store absolute pt line spacing from CSS for non-pill elements.
+          // Pills override this with lineSpacingMultiple: 1 in addElements.
+          lineSpacing: (parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2) * PT_PER_PX,
+          // CSS letter-spacing → pptxgenjs charSpacing (pt). "normal" parses as NaN → 0.
+          charSpacing: parseFloat(computed.letterSpacing) * PT_PER_PX || 0,
           transparency: extractAlpha(computed.color),
-          bold: fontInfo.bold
+          bold: fontInfo.bold,
+          paddingLeft:   pxToPoints(computed.paddingLeft)   || 0,
+          paddingTop:    pxToPoints(computed.paddingTop)    || 0,
+          paddingRight:  pxToPoints(computed.paddingRight)  || 0,
+          paddingBottom: pxToPoints(computed.paddingBottom) || 0
         };
 
-        // Collect all inline text runs
-        const runs = parseInlineContent(el, baseStyle);
+        // Apply the block element's own text-transform as the base transform
+        // so direct text nodes (not just inline children) get uppercased etc.
+        const baseTextTransform = computed.textTransform && computed.textTransform !== 'none'
+          ? (text) => applyTextTransform(text, computed.textTransform)
+          : (x) => x;
 
-        // Filter out empty runs
-        const validRuns = runs.filter(r => r.text.trim().length > 0 || r.options.break);
+        // Collect all inline text runs
+        const runs = parseInlineContent(el, baseStyle, [], baseTextTransform);
+
+        // Fold empty break-line runs into the PREVIOUS run so pptxgenjs
+        // starts a new paragraph AFTER that run. pptxgenjs breakLine means
+        // "new line begins after this run", so the flag must go on the run
+        // that PRECEDES the break, not the one that follows it.
+        const merged = [];
+        for (const run of runs) {
+          if (run.text === '' && run.options.breakLine) {
+            if (merged.length > 0) {
+              const prev = merged[merged.length - 1];
+              merged[merged.length - 1] = { ...prev, options: { ...prev.options, breakLine: true } };
+            }
+            continue;
+          }
+          merged.push(run);
+        }
+
+        const validRuns = merged.filter(r => r.text.trim().length > 0 || r.options.breakLine);
 
         if (validRuns.length > 0) {
           elements.push({
@@ -470,67 +494,51 @@ async function extractSlideData(page) {
 async function captureComponents(page, tmpDir, htmlFile) {
   const components = [];
 
-  // Auto-detect components based on CSS properties instead of hardcoded class names
   const componentElements = await page.evaluate(() => {
     const els = [];
 
-    // Helper: Check if element has visual styling worth capturing
     const hasVisualStyling = (el, computed) => {
-      // Skip body and html
       if (el.tagName === 'BODY' || el.tagName === 'HTML') return false;
-
-      // Check for background (color, image, gradient)
-      const hasBackground = computed.backgroundColor !== 'rgba(0, 0, 0, 0)' &&
-        computed.backgroundColor !== 'transparent';
+      const hasBackground = computed.backgroundColor !== 'rgba(0, 0, 0, 0)' && computed.backgroundColor !== 'transparent';
       const hasBackgroundImage = computed.backgroundImage !== 'none';
-
-      // Check for borders
-      const hasBorder = computed.borderWidth !== '0px' ||
-        computed.borderTopWidth !== '0px' ||
-        computed.borderRightWidth !== '0px' ||
-        computed.borderBottomWidth !== '0px' ||
-        computed.borderLeftWidth !== '0px';
-
-      // Check for box shadow
+      const hasBorder = computed.borderWidth !== '0px' || computed.borderTopWidth !== '0px' ||
+        computed.borderRightWidth !== '0px' || computed.borderBottomWidth !== '0px' || computed.borderLeftWidth !== '0px';
       const hasBoxShadow = computed.boxShadow !== 'none';
-
-      // Check for border radius (rounded corners often indicate designed components)
       const hasBorderRadius = computed.borderRadius !== '0px';
-
-      // Check for backdrop filter (glassmorphism)
-      const hasBackdropFilter = computed.backdropFilter !== 'none' ||
-        computed.webkitBackdropFilter !== 'none';
-
+      const hasBackdropFilter = computed.backdropFilter !== 'none' || computed.webkitBackdropFilter !== 'none';
       return hasBackground || hasBackgroundImage || hasBorder || hasBoxShadow ||
         (hasBorderRadius && (hasBackground || hasBackgroundImage)) || hasBackdropFilter;
     };
 
-    // Helper: Check if element is a decorative positioned element
     const isDecorativeElement = (el, computed) => {
       const position = computed.position;
       if (position !== 'absolute' && position !== 'fixed') return false;
-
-      // Decorative elements are usually positioned and have visual styling
       return hasVisualStyling(el, computed);
     };
 
-    // Helper: Check if element is large enough to be a component (not just a small badge)
-    const isSignificantSize = (rect) => {
-      // Components are usually at least 80pt x 80pt
-      // But we also capture smaller elements if they have strong visual styling
-      return rect.width >= 60 && rect.height >= 60;
+    const isSignificantSize = (rect) => rect.width >= 1 && rect.height >= 1;
+
+    // Body background color and slide bounds for redundancy check.
+    const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+    const bodyRect = document.body.getBoundingClientRect();
+
+    // A full-slide container whose background matches the body adds an identical
+    // layer on top of the global background capture — skip it.
+    const isRedundantFullSlide = (computed, rect) => {
+      if (computed.backgroundColor !== bodyBg) return false;
+      const margin = 4; // px tolerance for sub-pixel layout
+      return rect.width >= bodyRect.width - margin && rect.height >= bodyRect.height - margin;
     };
 
-    // Traverse all elements
+    // First pass: collect all elements that should be captured.
+    const capturedSet = new Set();
+
     document.querySelectorAll('*').forEach((el, index) => {
       const computed = window.getComputedStyle(el);
       const rect = el.getBoundingClientRect();
 
-      // Skip invisible elements
       if (computed.display === 'none' || computed.visibility === 'hidden' ||
-        computed.opacity === '0' || rect.width === 0 || rect.height === 0) {
-        return;
-      }
+        computed.opacity === '0' || rect.width === 0 || rect.height === 0) return;
 
       const explicitLayer = (el.getAttribute('data-pptx-layer') || '').toLowerCase();
       const explicitCapture = (el.getAttribute('data-pptx-capture') || '').toLowerCase();
@@ -541,90 +549,84 @@ async function captureComponents(page, tmpDir, htmlFile) {
 
       if (skipCapture) return;
 
-      // Skip text-only elements (P, H1-H6, SPAN without background)
       const isTextElement = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I'].includes(el.tagName);
-      if (isTextElement && !hasVisualStyling(el, computed) && !forceCapture) {
-        return;
-      }
+      if (isTextElement && !hasVisualStyling(el, computed) && !forceCapture) return;
 
-      // Capture if:
-      // 1. Explicitly marked with data-pptx-layer/data-pptx-capture
-      // 2. Has visual styling AND is significant size
-      // 3. OR is a decorative positioned element (any size)
       const shouldCapture = forceCapture ||
         (hasVisualStyling(el, computed) && isSignificantSize(rect)) ||
         isDecorativeElement(el, computed);
 
-      if (shouldCapture) {
-        if (!el.id) el.id = `pptx-comp-${index}`;
+      if (!shouldCapture) return;
 
-        els.push({
-          id: el.id,
-          width: rect.width,
-          height: rect.height,
-          className: el.className || '',
-          tagName: el.tagName,
-          layer: explicitLayer || explicitCapture || 'auto'
-        });
-      }
+      // Drop non-forced elements whose background duplicates the global background.
+      if (!forceCapture && isRedundantFullSlide(computed, rect)) return;
+
+      if (!el.id) el.id = `pptx-comp-${index}`;
+      capturedSet.add(el.id);
+      els.push({
+        id: el.id,
+        width: rect.width,
+        height: rect.height,
+        className: el.className || '',
+        tagName: el.tagName,
+        layer: explicitLayer || explicitCapture || 'auto',
+        capturedDescendants: []
+      });
+    });
+
+    // Second pass: for each captured element, record which of its descendants are
+    // also being captured so they can be hidden during skeleton capture.
+    // This prevents a child component's visual from appearing in its parent's
+    // skeleton PNG (which would cause it to render twice in the final PPTX).
+    els.forEach(comp => {
+      const el = document.getElementById(comp.id);
+      if (!el) return;
+      el.querySelectorAll('*').forEach(child => {
+        if (child.id && capturedSet.has(child.id)) {
+          comp.capturedDescendants.push(child.id);
+        }
+      });
     });
 
     return els;
   });
 
   for (const comp of componentElements) {
-    // 1. Hide text inside this component
-    await page.evaluate((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        // Hide direct text nodes by making text transparent.
-        // Explicit design layers normally contain no text, but this keeps
-        // accidental labels out of selectable visual PNG layers.
-        // This preserves the container's background/border but hides the text content
-        el.style.color = 'transparent';
-        el.style.webkitTextFillColor = 'transparent';
+    // 1. Hide text and captured descendants inside this component.
+    await page.evaluate((comp) => {
+      const el = document.getElementById(comp.id);
+      if (!el) return;
+      el.style.color = 'transparent';
+      el.style.webkitTextFillColor = 'transparent';
 
-        // Also hide specific child elements that might contain text or images
-        // We want to keep the "Skeleton" (container styles), so we hide content
-        const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
+      const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
+      el.querySelectorAll(contentTags.join(',')).forEach(child => {
+        if (['IMG', 'SVG'].includes(child.tagName)) {
+          child.style.visibility = 'hidden';
+        } else if (['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION'].includes(child.tagName)) {
+          child.style.visibility = 'hidden';
+        }
+        child.style.color = 'transparent';
+        child.style.webkitTextFillColor = 'transparent';
+      });
 
-        el.querySelectorAll(contentTags.join(',')).forEach(child => {
-          // We use visibility: hidden for children to maintain layout but hide content
-          // However, for some structural divs (like a card header div), we might want to keep them visible if they have background?
-          // But usually, the component selector targets the container.
-          // If we hide all DIVs inside, we might hide inner containers.
-          // Let's be more specific: hide text-containing tags and images.
-          // If a DIV has a background image or color, it might be part of the skeleton.
-          // But distinguishing "content div" from "structure div" is hard.
-          // For now, let's rely on the text transparency for text, and explicitly hide Images/SVGs.
-          // And hide text-specific tags.
+      // Hide descendant components that will be captured in their own pass so
+      // they don't appear inside this element's skeleton PNG.
+      comp.capturedDescendants.forEach(childId => {
+        const child = document.getElementById(childId);
+        if (child) child.style.opacity = '0';
+      });
+    }, comp);
 
-          if (['IMG', 'SVG'].includes(child.tagName)) {
-            child.style.visibility = 'hidden';
-          } else if (['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION'].includes(child.tagName)) {
-            child.style.visibility = 'hidden';
-          }
-          // We do NOT hide DIVs blindly, to preserve inner structure (like grid layouts inside a card)
-          // The text inside DIVs will be hidden by the inherited color: transparent (or we set it on them too)
-          child.style.color = 'transparent';
-          child.style.webkitTextFillColor = 'transparent';
-        });
-      }
-    }, comp.id);
-
-    // 2. Screenshot the component
+    // 2. Screenshot the component.
     const elementHandle = await page.$(`#${comp.id}`);
     if (elementHandle) {
       const filename = `comp_${comp.id}_${Date.now()}.png`;
       const savePath = path.join(tmpDir, filename);
-
-      // Capture with transparency
       await elementHandle.screenshot({ path: savePath, omitBackground: true });
 
-      // Get position (re-evaluate to be safe)
       const position = await page.evaluate((id) => {
         const rect = document.getElementById(id).getBoundingClientRect();
-        const PT_PER_PX = 0.75;
         const PX_PER_IN = 96;
         return {
           x: rect.left / PX_PER_IN,
@@ -634,28 +636,28 @@ async function captureComponents(page, tmpDir, htmlFile) {
         };
       }, comp.id);
 
-      components.push({
-        type: 'image',
-        path: savePath,
-        ...position
-      });
+      components.push({ type: 'image', path: savePath, ...position });
     }
 
-    // 3. Restore text visibility (or just reload page later)
-    await page.evaluate((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.style.color = '';
-        el.style.webkitTextFillColor = '';
+    // 3. Restore text visibility and captured descendants.
+    await page.evaluate((comp) => {
+      const el = document.getElementById(comp.id);
+      if (!el) return;
+      el.style.color = '';
+      el.style.webkitTextFillColor = '';
 
-        const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
-        el.querySelectorAll(contentTags.join(',')).forEach(child => {
-          child.style.visibility = '';
-          child.style.color = '';
-          child.style.webkitTextFillColor = '';
-        });
-      }
-    }, comp.id);
+      const contentTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'DIV', 'TD', 'TH', 'BUTTON', 'LABEL', 'DT', 'DD', 'BLOCKQUOTE', 'FIGCAPTION', 'IMG', 'SVG'];
+      el.querySelectorAll(contentTags.join(',')).forEach(child => {
+        child.style.visibility = '';
+        child.style.color = '';
+        child.style.webkitTextFillColor = '';
+      });
+
+      comp.capturedDescendants.forEach(childId => {
+        const child = document.getElementById(childId);
+        if (child) child.style.opacity = '';
+      });
+    }, comp);
   }
 
   return components;
@@ -797,7 +799,7 @@ async function html2pptx(htmlFile, pres, options = {}) {
         };
 
         const isSignificantSize = (rect) => {
-          return rect.width >= 60 && rect.height >= 60;
+          return rect.width >= 1 && rect.height >= 1;
         };
 
         document.querySelectorAll('*').forEach(el => {

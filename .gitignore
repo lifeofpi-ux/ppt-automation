@@ -14,8 +14,14 @@
 !/README.md
 !/.gitignore
 
-# Explicitly ignore workspace (even if it was unignored by .agent rule somehow, though unlikely)
+# Re-ignore generated/local artifacts even inside .agent
+**/__pycache__/
+**/*.pyc
+**/.DS_Store
+.DS_Store
+.venv/
+
+# Explicitly ignore workspace and build artifacts
 workspace/
 node_modules/
-.DS_Store
 *.log

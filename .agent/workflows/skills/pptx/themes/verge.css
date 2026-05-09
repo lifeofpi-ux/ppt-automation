@@ -6,7 +6,10 @@
  *
  * Slide canvas: 720pt × 405pt (960px × 540px)
  * Design system inspired by The Verge 2024 redesign.
+ * Font: Pretendard family (Black/Bold/SemiBold/Medium/Regular/Light/ExtraLight/Thin)
  */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
 
 /* ─── Reset ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,7 +20,7 @@ html, body {
   overflow: hidden;
   background: #131313;
   color: #ffffff;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
 }
 
 /* ─── CSS Custom Properties ─────────────────────────────── */
@@ -48,11 +51,11 @@ html, body {
   --r-promo:   22.5pt;
   --r-pill:    30pt;
 
-  /* Typography */
-  --ff-display: Impact, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
-  --ff-sans:    'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --ff-mono:    'Courier New', Courier, monospace;
-  --ff-serif:   Georgia, 'Times New Roman', serif;
+  /* Typography — Pretendard family only */
+  --ff-display: 'Pretendard Variable', 'Pretendard', sans-serif;
+  --ff-sans:    'Pretendard Variable', 'Pretendard', sans-serif;
+  --ff-mono:    'Pretendard Variable', 'Pretendard', sans-serif;
+  --ff-serif:   'Pretendard Variable', 'Pretendard', sans-serif;
 }
 
 /* ─── Base Layout ───────────────────────────────────────── */
@@ -72,7 +75,7 @@ html, body {
 
 /* ─── Typography ────────────────────────────────────────── */
 
-/* Hero Display — Impact at 52–72pt */
+/* Hero Display — Pretendard Black (900) at 52–72pt */
 .v-hero {
   font-family: var(--ff-display);
   font-size: 60pt;
@@ -85,7 +88,7 @@ html, body {
 .v-hero--lg { font-size: 52pt; }
 .v-hero--sm { font-size: 40pt; }
 
-/* Section Title — PolySans Large */
+/* Section Title — Pretendard Bold (700) */
 .v-title {
   font-family: var(--ff-sans);
   font-size: 24pt;
@@ -105,7 +108,7 @@ html, body {
   letter-spacing: 1.9px;
 }
 
-/* Kicker / Mono Label — PolySans Mono UPPERCASE */
+/* Kicker / Mono Label — Pretendard SemiBold (600) UPPERCASE */
 .v-kicker {
   font-family: var(--ff-mono);
   font-size: 7.5pt;
@@ -138,7 +141,7 @@ html, body {
   line-height: 1.05;
 }
 
-/* Mono timestamp */
+/* Timestamp — Pretendard SemiBold (600) */
 .v-timestamp {
   font-family: var(--ff-mono);
   font-size: 7pt;
@@ -149,11 +152,11 @@ html, body {
   white-space: nowrap;
 }
 
-/* Serif pull quote */
+/* Pull quote — Pretendard Light (300) */
 .v-serif {
   font-family: var(--ff-serif);
   font-size: 12pt;
-  font-weight: 400;
+  font-weight: 300;
   color: var(--text-muted);
   line-height: 1.4;
   letter-spacing: -0.12px;
