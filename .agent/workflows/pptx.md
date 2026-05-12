@@ -98,94 +98,19 @@ To ensure this workflow operates seamlessly on both macOS and Windows:
 
 ### Step 0: Design Selection Interaction (MANDATORY)
 
-**Before starting ANY work**, you MUST ask the user to select a design style. Present the following options clearly:
+**Before starting ANY work**, read `.agent/workflows/skills/pptx/templates/registry.md` to get the current list of registered styles and their CSS setup instructions. Then present the style options to the user exactly as written in the `registry.md` Step 0 dialog section.
 
-> "어떤 디자인 스타일로 프레젠테이션을 생성할까요?"
->
-> 1. **The Verge Editorial** (Dark canvas, acid-mint/ultraviolet accents, Pretendard Black headlines, StoryStream cards) — *Best for tech media, news, trend reports*
-> 2. **Figma Editorial** (White canvas, oversized Light-weight headlines, signature pastel color blocks — lime/lilac/mint/coral/navy) — *Best for product launches, tool docs, clean modern decks*
-> 3. **getdesign Import** — 템플릿 이름을 입력하면 자동으로 다운로드하여 새 스타일로 등록합니다 (`npx getdesign@latest add [name]`)
-> 4. **Custom Design** (Tell me your preference!)
+After the user selects a style, follow the matching CSS Setup section in `registry.md` to copy the shared CSS file, then read the style's design spec file before writing any HTML.
 
-**Action based on selection**:
-- If **1 (Verge Editorial) selected**: Run the Verge CSS setup below, then read `.agent/workflows/skills/pptx/templates/the_verge_editorial.md` before writing any HTML.
-- If **2 (Figma Editorial) selected**: Run the Figma CSS setup below, then read `.agent/workflows/skills/pptx/templates/figma_editorial.md` before writing any HTML.
-- If **3 (getdesign Import) selected**: Follow the **getdesign Template Import** workflow below to download, convert, and register a new style.
-- If **4 (Custom) selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
-
-> **Note — Adding new styles**: Each registered style follows the same pattern: a shared CSS file in `.agent/workflows/skills/pptx/themes/` and a design spec in `.agent/workflows/skills/pptx/templates/`. Add a numbered option above and a CSS setup block below when registering a new style.
-
-#### The Verge Editorial — CSS Setup (Run ONCE per project)
-
-
-When the user selects **The Verge Editorial** style, copy the shared CSS file into the project before writing any slide HTML:
-
-```bash
-mkdir -p workspace/[project_name]/assets/css
-cp .agent/workflows/skills/pptx/themes/verge.css workspace/[project_name]/assets/css/verge.css
-```
-
-Then every slide HTML file starts with:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="../css/verge.css">
-  <style>
-    /* Slide-specific overrides only — do NOT repeat verge.css rules here */
-  </style>
-</head>
-<body>
-  <!-- use .v-* BEM classes from verge.css -->
-</body>
-</html>
-```
-
-**Reuse contract**:
-- All Verge design tokens (colors, fonts, radii, spacing) live in `verge.css` custom properties.
-- Slide HTML files use only `.v-*` utility classes from `verge.css`; per-slide `<style>` blocks contain layout overrides only (grid dimensions, specific heights, image paths).
-- To update the visual system across all slides in a project, edit only `verge.css`.
-- To share the theme across multiple projects, copy `verge.css` into each project's `assets/css/` folder.
-
-#### Figma Editorial — CSS Setup (Run ONCE per project)
-
-When the user selects **Figma Editorial** style, copy the shared CSS file into the project:
-
-```bash
-mkdir -p workspace/[project_name]/assets/css
-cp .agent/workflows/skills/pptx/themes/figma.css workspace/[project_name]/assets/css/figma.css
-```
-
-Then every slide HTML file starts with:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="../css/figma.css">
-  <style>
-    /* Slide-specific overrides only — do NOT repeat figma.css rules here */
-  </style>
-</head>
-<body>
-  <!-- use .fig-* BEM classes from figma.css -->
-</body>
-</html>
-```
+> **Adding new styles**: All style registration — options, CSS setup blocks, and the registered styles table — lives in `registry.md`. Do **not** add style content to this file. See `registry.md` for instructions.
 
 ### Registered Style Systems
 
-Each registered style is a pair: a **design spec** (`.md`) that defines the visual language, and a **shared CSS file** that implements it with CSS custom properties and BEM utility classes.
+All registered styles are documented in `.agent/workflows/skills/pptx/templates/registry.md`.
 
-| Style | Design Spec | Shared CSS | Source |
-|---|---|---|---|
-| **The Verge Editorial** | `templates/the_verge_editorial.md` | `themes/verge.css` | Hand-crafted |
-| **Figma Editorial** | `templates/figma_editorial.md` | `themes/figma.css` | getdesign (figma) |
+Each style is a pair: a **design spec** (`.md`) in `templates/` that defines the visual language, and a **shared CSS file** in `themes/` that implements it with CSS custom properties and BEM utility classes.
 
-**Adding a new style**: Create `templates/[style_name].md` (color palette, typography, component classes, layout examples, quality checklist) and `themes/[style_name].css` (CSS custom properties + BEM utility classes). Add a row to the table above, a numbered option in Step 0, and a CSS setup block following the Verge pattern below.
+> **To add a new style**: Follow the instructions at the bottom of `registry.md`. Update only `registry.md` — not this file.
 
 ---
 
@@ -863,6 +788,105 @@ p { font-size: 11pt; line-height: 1.5; }       /* Body max 12pt */
      ```
    - Add charts and tables to placeholder areas using PptxGenJS API
    - Save the presentation using `pptx.writeFile()`
+
+### Native PPTX Chart Injection (Placeholder → PptxGenJS Chart)
+
+When a slide needs a real PowerPoint chart object (editable data, chart styles, native PPTX format), use the `class="placeholder"` pattern combined with `html2pptx`'s returned `placeholders` array.
+
+#### Step 1 — Mark chart zones in HTML
+
+```html
+<!-- Any element with class="placeholder" and a unique id -->
+<div id="school-donut" class="placeholder" style="flex:1; width:100%;"></div>
+<div id="stamp-chart" class="placeholder" style="flex:1; width:100%;"></div>
+```
+
+The element's bounding box (x, y, w, h in inches) is captured at render time and returned by `html2pptx()`.
+
+#### Step 2 — Inject charts in build.js after html2pptx()
+
+```javascript
+const { slide, placeholders } = await html2pptx(filePath, pptx);
+
+// Find the placeholder by id and inject a native chart
+const ph = placeholders.find(p => p.id === 'school-donut');
+if (ph) {
+  slide.addChart(pptx.charts.DOUGHNUT,
+    [{ name: '학교급별', labels: ['초등', '중등', '고등'], values: [170, 32, 24] }],
+    {
+      x: ph.x, y: ph.y, w: ph.w, h: ph.h,
+      chartColors: ['10B981', '3B82F6', '8B5CF6'], // NO # prefix — causes file corruption
+      holeSize: 55,
+      showLegend: true,
+      legendPos: 'b',
+      legendFontSize: 8,
+    }
+  );
+}
+```
+
+#### Supported chart types
+
+| PptxGenJS constant | Use case |
+|---|---|
+| `pptx.charts.DOUGHNUT` | Share/ratio breakdown (school level, platform split) |
+| `pptx.charts.BAR` | Distribution / frequency (`barDir: 'col'` = column, `'bar'` = horizontal) |
+| `pptx.charts.PIE` | Simple part-to-whole (avoid when > 5 segments) |
+| `pptx.charts.LINE` | Trend over time |
+| `pptx.charts.SCATTER` | Correlation / two-variable data |
+
+#### Data format
+
+```javascript
+// Single series
+[{ name: 'Series name', labels: ['A', 'B', 'C'], values: [10, 20, 30] }]
+
+// Multi-series (LINE, BAR)
+[
+  { name: 'Series A', labels: ['Q1', 'Q2', 'Q3'], values: [10, 20, 30] },
+  { name: 'Series B', labels: ['Q1', 'Q2', 'Q3'], values: [5, 15, 25] },
+]
+```
+
+#### Critical rules
+
+- **NEVER use `#` prefix with hex colors** — e.g., `'10B981'` not `'#10B981'`. The `#` causes PptxGenJS to write invalid XML and corrupts the PPTX file.
+- `pptx.layout` must be `'LAYOUT_16x9'` (10" × 5.625") to match the 720pt × 405pt slide canvas used in the LOP and other templates.
+- Always use `placeholders.find(p => p.id === 'your-id')` and guard with `if (ph)` in case the element is missing.
+
+#### Common chart options
+
+```javascript
+// DOUGHNUT / PIE
+{
+  holeSize: 55,           // 0–100, higher = thinner ring
+  showLegend: true,
+  legendPos: 'b',         // 'b' | 't' | 'l' | 'r'
+  legendFontSize: 8,
+  showLabel: false,
+  showPercent: false,
+}
+
+// BAR (column)
+{
+  barDir: 'col',          // 'col' (vertical) | 'bar' (horizontal)
+  showValue: true,
+  dataLabelFontSize: 7,
+  dataLabelColor: '475569',
+  catAxisLabelFontSize: 8,
+  valAxisLabelFontSize: 8,
+  valAxisMaxVal: 220,
+  showLegend: false,
+}
+```
+
+#### LOP template color palettes for charts
+
+| Palette | Colors (no # prefix) |
+|---|---|
+| School levels (초/중/고) | `10B981`, `3B82F6`, `8B5CF6` |
+| Platform types | `06B6D4`, `94A3B8`, `10B981`, `F59E0B`, `8B5CF6`, `FB7185` |
+| Single-series emphasis | `10B981` (emerald) or `3B82F6` (blue) |
 
 ## Editing an existing PowerPoint presentation
 
