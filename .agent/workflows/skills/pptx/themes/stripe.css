@@ -1,0 +1,332 @@
+/*
+ * Stripe Editorial — Shared PPTX Slide Theme
+ * -------------------------------------------
+ * Inspired by stripe.com marketing design system.
+ * Source: npx getdesign@latest add stripe → DESIGN.md
+ *
+ * Copy to workspace/[project]/assets/css/stripe.css
+ * Link in each slide HTML: <link rel="stylesheet" href="../css/stripe.css">
+ *
+ * Slide canvas: 720pt × 405pt (960px × 540px)
+ * Font: Pretendard family (Sohne thin-300 display signature mapped to Pretendard Light).
+ *
+ * Sohne weight mapping → Pretendard:
+ *   300 (thin display)  → 300 (Light)   — the brand's editorial-air signature
+ *   400 (button/label)  → 500/600        — bumped for projector legibility at small pt
+ *   tabular figures     → Pretendard 400 + tnum + negative tracking
+ */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+
+/* ─── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  overflow: hidden;
+  background: #ffffff;
+  color: #0d253d;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
+  font-feature-settings: "ss01";
+}
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  /* Brand & accent */
+  --str-primary:        #533afd;
+  --str-primary-deep:   #4434d4;
+  --str-primary-press:  #2e2b8c;
+  --str-primary-soft:   #665efd;
+  --str-primary-subdued:#b9b9f9;
+  --str-brand-dark:     #1c1e54;
+  --str-ruby:           #ea2261;
+  --str-magenta:        #f96bee;
+  --str-lemon:          #c98a3a;
+
+  /* Surfaces */
+  --str-canvas:         #ffffff;
+  --str-canvas-soft:    #f6f9fc;
+  --str-canvas-cream:   #f5e9d4;
+  --str-hairline:       #e3e8ee;
+  --str-hairline-input: #a8c3de;
+
+  /* Text */
+  --str-ink:            #0d253d;
+  --str-ink-secondary:  #273951;
+  --str-ink-mute:       #64748d;
+  --str-on-primary:     #ffffff;
+
+  /* Border radius (px → pt ×0.75) */
+  --str-r-xs:   3pt;
+  --str-r-sm:   4.5pt;
+  --str-r-md:   6pt;
+  --str-r-lg:   9pt;
+  --str-r-xl:   12pt;
+  --str-r-pill: 999pt;
+
+  --str-ff: 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+/* ─── Base Layout ────────────────────────────────────────── */
+.str-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 30pt 40pt 26pt;
+  display: flex;
+  flex-direction: column;
+  background: var(--str-canvas);
+  color: var(--str-ink);
+}
+.str-container--soft { background: var(--str-canvas-soft); }
+.str-container--row  { flex-direction: row; gap: 16pt; padding: 28pt 36pt; }
+
+/* ─── Typography ─────────────────────────────────────────── */
+/* Display tier — Sohne thin (300) with negative tracking = the brand signature */
+.str-display-xl {
+  font-family: var(--str-ff);
+  font-size: 40pt; font-weight: 300; line-height: 1.04;
+  letter-spacing: -1.2pt; color: var(--str-ink);
+}
+.str-display-lg {
+  font-family: var(--str-ff);
+  font-size: 30pt; font-weight: 300; line-height: 1.08;
+  letter-spacing: -0.8pt; color: var(--str-ink);
+}
+.str-display-md {
+  font-family: var(--str-ff);
+  font-size: 23pt; font-weight: 300; line-height: 1.12;
+  letter-spacing: -0.45pt; color: var(--str-ink);
+}
+.str-heading {
+  font-family: var(--str-ff);
+  font-size: 16pt; font-weight: 300; line-height: 1.25;
+  letter-spacing: -0.3pt; color: var(--str-ink);
+}
+.str-subhead {
+  font-family: var(--str-ff);
+  font-size: 13pt; font-weight: 300; line-height: 1.4;
+  letter-spacing: -0.15pt; color: var(--str-ink-secondary);
+}
+.str-card-title {
+  font-family: var(--str-ff);
+  font-size: 12pt; font-weight: 600; line-height: 1.3;
+  letter-spacing: -0.1pt; color: var(--str-ink);
+}
+.str-body-lg {
+  font-family: var(--str-ff);
+  font-size: 11pt; font-weight: 400; line-height: 1.45;
+  letter-spacing: -0.05pt; color: var(--str-ink-secondary);
+}
+.str-body {
+  font-family: var(--str-ff);
+  font-size: 9.5pt; font-weight: 400; line-height: 1.45;
+  color: var(--str-ink-secondary);
+}
+.str-body-sm {
+  font-family: var(--str-ff);
+  font-size: 8.5pt; font-weight: 400; line-height: 1.4;
+  color: var(--str-ink-mute);
+}
+/* Tabular figures — the brand's quiet financial-data signal */
+.str-tabular {
+  font-family: var(--str-ff);
+  font-size: 9pt; font-weight: 400; line-height: 1.35;
+  letter-spacing: -0.3pt; font-feature-settings: "tnum";
+  color: var(--str-ink-secondary);
+}
+.str-kpi {
+  font-family: var(--str-ff);
+  font-size: 32pt; font-weight: 300; line-height: 1.0;
+  letter-spacing: -1pt; font-feature-settings: "tnum";
+  color: var(--str-primary);
+}
+.str-eyebrow {
+  font-family: var(--str-ff);
+  font-size: 7.5pt; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2pt; line-height: 1.3; color: var(--str-primary-deep);
+}
+.str-caption {
+  font-family: var(--str-ff);
+  font-size: 7pt; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 1.5pt; line-height: 1.2; color: var(--str-ink-mute);
+}
+
+/* ─── Slide Header ───────────────────────────────────────── */
+.str-header {
+  display: flex; flex-direction: column; gap: 5pt; margin-bottom: 14pt;
+}
+.str-header__bar {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.str-rule { height: 1px; background: var(--str-hairline); margin: 8pt 0; }
+
+/* ─── Gradient Mesh Layer (signature Stripe backdrop) ────── */
+/* Used as a selectable design-layer <img> inside cover/divider/section heads */
+.str-mesh {
+  position: absolute; top: 0; left: 0; width: 100%;
+  pointer-events: none; object-fit: cover; z-index: 0;
+}
+.str-mesh--top { height: 46%; }
+.str-mesh--full { height: 100%; inset: 0; }
+/* Keep all real content above the mesh design layer (but leave absolutely
+   positioned chrome — page number, brand strip — in their corners) */
+.str-cover > *:not(.str-mesh),
+.str-divider > *:not(.str-mesh),
+.str-container > *:not(.str-mesh):not(.str-pagenum):not(.str-brand) { position: relative; z-index: 1; }
+
+/* ─── Cover Slide ────────────────────────────────────────── */
+.str-cover {
+  position: relative; width: 100%; height: 100%;
+  padding: 44pt 52pt 40pt; background: var(--str-canvas);
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 12pt;
+  overflow: hidden;
+}
+.str-cover__meta { display: flex; gap: 18pt; align-items: baseline; }
+
+/* ─── Section Divider (간지) ─────────────────────────────── */
+.str-divider {
+  position: relative; width: 100%; height: 100%;
+  padding: 40pt 52pt; background: var(--str-brand-dark);
+  color: var(--str-on-primary);
+  display: flex; flex-direction: column; justify-content: center; gap: 10pt;
+  overflow: hidden;
+}
+.str-divider .str-display-xl,
+.str-divider .str-display-lg { color: var(--str-on-primary); }
+.str-divider .str-eyebrow { color: var(--str-primary-subdued); }
+.str-divider .str-body-lg,
+.str-divider .str-subhead { color: rgba(255,255,255,0.78); }
+.str-divider__index {
+  font-family: var(--str-ff); font-weight: 300; font-feature-settings: "tnum";
+  font-size: 90pt; line-height: 1; letter-spacing: -3pt;
+  color: rgba(255,255,255,0.10);
+  position: absolute; right: 48pt; bottom: 24pt;
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.str-card {
+  position: relative;
+  background: var(--str-canvas);
+  border: 1px solid var(--str-hairline);
+  border-radius: var(--str-r-lg);
+  padding: 13pt 15pt;
+  display: flex; flex-direction: column; gap: 5pt;
+  box-shadow: 0 1px 3px rgba(0,55,112,0.07);
+}
+.str-card--soft    { background: var(--str-canvas-soft); border: none; }
+.str-card--cream   { background: var(--str-canvas-cream); border: none; }
+.str-card--cream .str-card-title { color: #6b4d1e; }
+.str-card--primary { background: var(--str-primary); border: none; box-shadow: 0 8px 24px rgba(83,58,253,0.22); }
+.str-card--dark    { background: var(--str-brand-dark); border: none; box-shadow: 0 8px 24px rgba(0,55,112,0.18); }
+.str-card--primary .str-card-title,
+.str-card--dark .str-card-title { color: var(--str-on-primary); }
+.str-card--primary .str-body, .str-card--primary .str-body-sm, .str-card--primary .str-body-lg,
+.str-card--dark .str-body, .str-card--dark .str-body-sm, .str-card--dark .str-body-lg { color: rgba(255,255,255,0.82); }
+.str-card--primary .str-eyebrow,
+.str-card--dark .str-eyebrow { color: var(--str-primary-subdued); }
+.str-card--primary .str-kpi { color: var(--str-on-primary); }
+
+/* Accent left rail on a card */
+.str-card--rail { border-left: 3pt solid var(--str-primary); }
+.str-card--rail-ruby { border-left: 3pt solid var(--str-ruby); }
+
+/* ─── Grids ──────────────────────────────────────────────── */
+.str-grid { display: grid; gap: 9pt; flex: 1; }
+.str-grid--2col { grid-template-columns: repeat(2, 1fr); }
+.str-grid--3col { grid-template-columns: repeat(3, 1fr); }
+.str-grid--4col { grid-template-columns: repeat(4, 1fr); }
+.str-grid--5col { grid-template-columns: repeat(5, 1fr); }
+
+/* ─── Numbered token (process / list index) ─────────────── */
+.str-num {
+  width: 18pt; height: 18pt; flex-shrink: 0;
+  border-radius: var(--str-r-pill);
+  background: var(--str-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.str-num p {
+  color: #ffffff; font-size: 9pt; font-weight: 600;
+  font-family: var(--str-ff); font-feature-settings: "tnum"; line-height: 1;
+}
+.str-num--soft { background: var(--str-primary-subdued); }
+.str-num--soft p { color: var(--str-primary-deep); }
+
+/* ─── Pills & Tags ───────────────────────────────────────── */
+.str-pill {
+  display: inline-flex; align-items: center;
+  padding: 3pt 9pt; border-radius: var(--str-r-pill);
+  font-family: var(--str-ff); font-size: 7pt; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.2pt; line-height: 1;
+  background: var(--str-primary-subdued); color: var(--str-primary-deep);
+}
+.str-pill--primary { background: var(--str-primary); color: #ffffff; }
+.str-pill--dark    { background: var(--str-brand-dark); color: #ffffff; }
+.str-pill--ruby    { background: var(--str-ruby); color: #ffffff; }
+.str-pill--outline { background: transparent; border: 1px solid var(--str-primary); color: var(--str-primary); }
+
+/* ─── Insight / Takeaway Bar ─────────────────────────────── */
+.str-insight {
+  margin-top: auto; display: flex; align-items: center; gap: 12pt;
+  background: var(--str-brand-dark); border-radius: var(--str-r-md);
+  padding: 9pt 14pt;
+}
+.str-insight__label {
+  font-family: var(--str-ff); font-size: 7pt; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5pt; white-space: nowrap;
+  flex-shrink: 0; color: var(--str-primary-subdued);
+}
+.str-insight__text {
+  font-family: var(--str-ff); font-size: 9pt; font-weight: 400;
+  line-height: 1.35; color: rgba(255,255,255,0.92);
+}
+
+/* ─── Table helpers (Stripe hairline tables) ─────────────── */
+.str-table { width: 100%; border-collapse: collapse; }
+.str-table th {
+  font-family: var(--str-ff); font-size: 7.5pt; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.8pt; color: var(--str-ink-mute);
+  text-align: left; padding: 6pt 9pt; border-bottom: 1px solid var(--str-hairline);
+  background: var(--str-canvas-soft);
+}
+.str-table td {
+  font-family: var(--str-ff); font-size: 8.5pt; font-weight: 400;
+  color: var(--str-ink-secondary); padding: 6pt 9pt;
+  border-bottom: 1px solid var(--str-hairline); vertical-align: top;
+  line-height: 1.35;
+}
+.str-table td.num { font-feature-settings: "tnum"; letter-spacing: -0.3pt; text-align: right; }
+.str-table tr.hl td { background: rgba(83,58,253,0.05); color: var(--str-ink); font-weight: 500; }
+
+/* ─── Brand Strip ────────────────────────────────────────── */
+.str-brand {
+  position: absolute; bottom: 13pt; right: 22pt;
+  display: flex; align-items: center; gap: 6pt;
+}
+.str-brand p {
+  font-family: var(--str-ff); font-size: 6.5pt; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5pt; color: var(--str-ink-mute);
+}
+.str-pagenum {
+  position: absolute; bottom: 13pt; left: 40pt;
+}
+.str-pagenum p {
+  font-family: var(--str-ff); font-size: 6.5pt; font-weight: 500;
+  font-feature-settings: "tnum"; letter-spacing: 1pt; color: var(--str-ink-mute);
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
+.str-flex-col { display: flex; flex-direction: column; gap: 6pt; }
+.str-flex-row { display: flex; flex-direction: row; gap: 9pt; align-items: flex-start; }
+.str-row-center { display: flex; flex-direction: row; gap: 9pt; align-items: center; }
+.str-stretch  { flex: 1; }
+.str-between  { justify-content: space-between; }
+.str-muted    { color: var(--str-ink-mute); }
+.str-accent   { color: var(--str-primary); }
+.str-ruby     { color: var(--str-ruby); }
+.str-icon     { object-fit: contain; flex-shrink: 0; }
+.str-arrow {
+  font-family: var(--str-ff); color: var(--str-primary); font-weight: 400;
+  font-size: 12pt; line-height: 1;
+}

@@ -104,14 +104,16 @@ To ensure this workflow operates seamlessly on both macOS and Windows:
 >
 > 1. **The Verge Editorial** (Dark canvas, acid-mint/ultraviolet accents, Pretendard Black headlines, StoryStream cards) — *Best for tech media, news, trend reports*
 > 2. **Figma Editorial** (White canvas, oversized Light-weight headlines, signature pastel color blocks — lime/lilac/mint/coral/navy) — *Best for product launches, tool docs, clean modern decks*
-> 3. **getdesign Import** — 템플릿 이름을 입력하면 자동으로 다운로드하여 새 스타일로 등록합니다 (`npx getdesign@latest add [name]`)
-> 4. **Custom Design** (Tell me your preference!)
+> 3. **Stripe Editorial** (White/cool canvas, deep-navy ink, single electric-indigo accent, signature gradient-mesh hero, Sohne-thin headlines, tabular figures) — *Best for strategy, financial, infrastructure, and analytical decks*
+> 4. **getdesign Import** — 템플릿 이름을 입력하면 자동으로 다운로드하여 새 스타일로 등록합니다 (`npx getdesign@latest add [name]`)
+> 5. **Custom Design** (Tell me your preference!)
 
 **Action based on selection**:
 - If **1 (Verge Editorial) selected**: Run the Verge CSS setup below, then read `.agent/workflows/skills/pptx/templates/the_verge_editorial.md` before writing any HTML.
 - If **2 (Figma Editorial) selected**: Run the Figma CSS setup below, then read `.agent/workflows/skills/pptx/templates/figma_editorial.md` before writing any HTML.
-- If **3 (getdesign Import) selected**: Follow the **getdesign Template Import** workflow below to download, convert, and register a new style.
-- If **4 (Custom) selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
+- If **3 (Stripe Editorial) selected**: Run the Stripe CSS setup below, then read `.agent/workflows/skills/pptx/templates/stripe_editorial.md` before writing any HTML.
+- If **4 (getdesign Import) selected**: Follow the **getdesign Template Import** workflow below to download, convert, and register a new style.
+- If **5 (Custom) selected**: Ask for specific requirements (color, vibe, font) and proceed with custom art direction.
 
 > **Note — Adding new styles**: Each registered style follows the same pattern: a shared CSS file in `.agent/workflows/skills/pptx/themes/` and a design spec in `.agent/workflows/skills/pptx/templates/`. Add a numbered option above and a CSS setup block below when registering a new style.
 
@@ -176,6 +178,33 @@ Then every slide HTML file starts with:
 </html>
 ```
 
+#### Stripe Editorial — CSS Setup (Run ONCE per project)
+
+When the user selects **Stripe Editorial** style, copy the shared CSS file into the project:
+
+```bash
+mkdir -p workspace/[project_name]/assets/css
+cp .agent/workflows/skills/pptx/themes/stripe.css workspace/[project_name]/assets/css/stripe.css
+```
+
+Then every slide HTML file starts with:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/stripe.css">
+  <style>
+    /* Slide-specific overrides only — do NOT repeat stripe.css rules here */
+  </style>
+</head>
+<body>
+  <!-- use .str-* BEM classes from stripe.css -->
+</body>
+</html>
+```
+
 ### Registered Style Systems
 
 Each registered style is a pair: a **design spec** (`.md`) that defines the visual language, and a **shared CSS file** that implements it with CSS custom properties and BEM utility classes.
@@ -184,6 +213,7 @@ Each registered style is a pair: a **design spec** (`.md`) that defines the visu
 |---|---|---|---|
 | **The Verge Editorial** | `templates/the_verge_editorial.md` | `themes/verge.css` | Hand-crafted |
 | **Figma Editorial** | `templates/figma_editorial.md` | `themes/figma.css` | getdesign (figma) |
+| **Stripe Editorial** | `templates/stripe_editorial.md` | `themes/stripe.css` | getdesign (stripe) |
 
 **Adding a new style**: Create `templates/[style_name].md` (color palette, typography, component classes, layout examples, quality checklist) and `themes/[style_name].css` (CSS custom properties + BEM utility classes). Add a row to the table above, a numbered option in Step 0, and a CSS setup block following the Verge pattern below.
 
