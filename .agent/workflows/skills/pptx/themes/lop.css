@@ -1,0 +1,1055 @@
+/*
+ * LOP Editorial — Shared PPTX Slide Theme
+ * -------------------------------------------
+ * Design: MUNE (mune.link) / Korean EdTech SaaS Dashboard.
+ * Off-white dot-grid canvas · emerald teal accent · pastel feature cards
+ * · dark navy CTA · clean white panels with subtle shadows.
+ * BEM prefix: .lop-*
+ *
+ * Copy to workspace/[project]/assets/css/lop.css
+ * Link in each slide HTML: <link rel="stylesheet" href="../css/lop.css">
+ *
+ * Slide canvas: 720pt × 405pt (960px × 540px @ 96 DPI)
+ * Font: Pretendard Variable (all weights via CDN)
+ */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+
+/* ─── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  overflow: hidden;
+  background: #f6f8fa;
+  color: #0f172a;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  /* ── Core ink & canvas ── */
+  --lop-ink:           #0f172a;   /* Near-black navy — all headlines */
+  --lop-ink-soft:      #475569;   /* Slate — body copy */
+  --lop-ink-muted:     #94a3b8;   /* Light gray — metadata, captions */
+  --lop-canvas:        #f6f8fa;   /* Off-white slide background */
+  --lop-canvas-white:  #ffffff;   /* Pure white card surface */
+  --lop-surface:       #f1f5f9;   /* Slightly deeper off-white tile */
+
+  /* ── Primary accent — Emerald / Teal ── */
+  --lop-emerald:       #10b981;   /* Primary CTA, progress bars, headline accent */
+  --lop-emerald-dark:  #059669;   /* Hover / pressed / dark variant */
+  --lop-emerald-pale:  #d1fae5;   /* Pale tint for icon backgrounds */
+  --lop-emerald-glow:  rgba(16,185,129,0.18); /* Soft radial glow */
+
+  /* ── Secondary accent — Cyan ── */
+  --lop-cyan:          #06b6d4;
+  --lop-cyan-pale:     #cffafe;
+
+  /* ── Strong CTA — Dark Navy ── */
+  --lop-navy:          #1e293b;   /* Dark CTA button, dark surface */
+  --lop-navy-deep:     #0f172a;   /* Absolute dark text */
+
+  /* ── Violet accent ── */
+  --lop-violet:        #8b5cf6;   /* Secondary chart / accent */
+  --lop-violet-pale:   #ede9fe;
+
+  /* ── Pastel feature card fills ── */
+  --lop-card-blue:     #dbeafe;   /* Interactive — pastel blue */
+  --lop-card-blue-dk:  #93c5fd;
+  --lop-card-teal:     #ccfbf1;   /* Real-time survey — pastel teal */
+  --lop-card-teal-dk:  #5eead4;
+  --lop-card-yellow:   #fef9c3;   /* Draw / random — pastel yellow */
+  --lop-card-yellow-dk:#fde047;
+  --lop-card-pink:     #fce7f3;   /* Chat / social — pastel pink */
+  --lop-card-pink-dk:  #f9a8d4;
+  --lop-card-coral:    #ffedd5;   /* Warm coral */
+  --lop-card-coral-dk: #fdba74;
+
+  /* ── Chart / data palette ── */
+  --lop-data-1: #10b981;   /* emerald */
+  --lop-data-2: #3b82f6;   /* blue */
+  --lop-data-3: #8b5cf6;   /* violet */
+  --lop-data-4: #f59e0b;   /* amber */
+  --lop-data-5: #ef4444;   /* red */
+  --lop-data-6: #06b6d4;   /* cyan */
+
+  /* ── Border, shadow, depth ── */
+  --lop-hairline:      #e2e8f0;
+  --lop-hairline-soft: #f1f5f9;
+  --lop-shadow-sm:     0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+  --lop-shadow:        0 4px 6px rgba(15,23,42,0.07), 0 2px 4px rgba(15,23,42,0.04);
+  --lop-shadow-lg:     0 10px 15px rgba(15,23,42,0.08), 0 4px 6px rgba(15,23,42,0.03);
+
+  /* ── Border radius ── */
+  --lop-r-xs:   2pt;
+  --lop-r-sm:   4pt;
+  --lop-r-md:   8pt;
+  --lop-r-lg:   12pt;
+  --lop-r-xl:   16pt;
+  --lop-r-2xl:  24pt;
+  --lop-r-pill: 999pt;
+
+  /* ── Font stack ── */
+  --lop-ff: 'Pretendard Variable', 'Pretendard', sans-serif;
+
+  /* ── Dot grid texture values ── */
+  --lop-dot-color: rgba(148,163,184,0.35);
+  --lop-dot-size:  18pt;
+}
+
+/* ─── Dot Grid Background Utility ───────────────────────── */
+.lop-dot-bg {
+  background-color: var(--lop-canvas);
+  background-image: radial-gradient(circle, var(--lop-dot-color) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+}
+
+/* ─── Base Layout ────────────────────────────────────────── */
+.lop-container {
+  width: 100%;
+  height: 100%;
+  padding: 28pt 36pt 24pt;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--lop-canvas);
+  background-image: radial-gradient(circle, var(--lop-dot-color) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  color: var(--lop-ink);
+  position: relative;
+}
+
+.lop-container--white {
+  background-color: var(--lop-canvas-white);
+  background-image: none;
+}
+
+.lop-container--row {
+  flex-direction: row;
+  gap: 18pt;
+  padding: 24pt 32pt;
+}
+
+.lop-container--navy {
+  background-color: var(--lop-navy);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.05) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  color: #ffffff;
+}
+
+/* ─── Typography ─────────────────────────────────────────── */
+
+/* Display XL — Pretendard Black (900) — Cover hero */
+.lop-display-xl {
+  font-family: var(--lop-ff);
+  font-size: 42pt;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1pt;
+  color: var(--lop-ink);
+}
+
+/* Display LG — Pretendard ExtraBold (800) */
+.lop-display-lg {
+  font-family: var(--lop-ff);
+  font-size: 30pt;
+  font-weight: 800;
+  line-height: 1.10;
+  letter-spacing: -0.6pt;
+  color: var(--lop-ink);
+}
+
+/* Headline — Pretendard Bold (700) */
+.lop-headline {
+  font-family: var(--lop-ff);
+  font-size: 20pt;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.3pt;
+  color: var(--lop-ink);
+}
+
+/* Subhead — Pretendard SemiBold (600) */
+.lop-subhead {
+  font-family: var(--lop-ff);
+  font-size: 14pt;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.1pt;
+  color: var(--lop-ink);
+}
+
+/* Card Title — Pretendard Bold (700) */
+.lop-card-title {
+  font-family: var(--lop-ff);
+  font-size: 11pt;
+  font-weight: 700;
+  line-height: 1.40;
+  color: var(--lop-ink);
+}
+
+/* Body LG — Pretendard Medium (500) */
+.lop-body-lg {
+  font-family: var(--lop-ff);
+  font-size: 11pt;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--lop-ink-soft);
+}
+
+/* Body — Pretendard Regular (400) */
+.lop-body {
+  font-family: var(--lop-ff);
+  font-size: 9.5pt;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lop-ink-soft);
+}
+
+/* Body SM */
+.lop-body-sm {
+  font-family: var(--lop-ff);
+  font-size: 8pt;
+  font-weight: 400;
+  line-height: 1.50;
+  color: var(--lop-ink-soft);
+}
+
+/* Eyebrow — Uppercase SemiBold + tracking */
+.lop-eyebrow {
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2pt;
+  line-height: 1.30;
+  color: var(--lop-emerald);
+}
+
+/* Caption — metadata, footnotes */
+.lop-caption {
+  font-family: var(--lop-ff);
+  font-size: 6.5pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  line-height: 1.00;
+  color: var(--lop-ink-muted);
+}
+
+/* Stat number — large data callout */
+.lop-stat-number {
+  font-family: var(--lop-ff);
+  font-size: 28pt;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.5pt;
+  color: var(--lop-ink);
+}
+
+/* ── Accent color helpers ── */
+.lop-accent         { color: var(--lop-emerald); }
+.lop-accent-violet  { color: var(--lop-violet); }
+.lop-accent-cyan    { color: var(--lop-cyan); }
+.lop-accent-white   { color: #ffffff; }
+
+/* ─── Slide Header ───────────────────────────────────────── */
+.lop-header {
+  margin-bottom: 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 4pt;
+}
+
+/* ─── Top Navigation Bar ─────────────────────────────────── */
+/* Matches the "현황 대시보드 / 일간 분석 / 현황 분석" nav style */
+.lop-topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12pt;
+}
+
+.lop-topnav__brand {
+  font-family: var(--lop-ff);
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--lop-ink);
+  letter-spacing: -0.2pt;
+}
+
+.lop-topnav__links {
+  display: flex;
+  align-items: center;
+  gap: 4pt;
+}
+
+.lop-topnav__link {
+  padding: 3.5pt 10pt;
+  border-radius: var(--lop-r-pill);
+  font-family: var(--lop-ff);
+  font-size: 8pt;
+  font-weight: 500;
+  color: var(--lop-ink-soft);
+}
+
+.lop-topnav__link--active {
+  background: var(--lop-navy);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ─── Cover Slide ────────────────────────────────────────── */
+/* Split layout: left text column + right visual panel */
+.lop-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--lop-canvas);
+  background-image: radial-gradient(circle, var(--lop-dot-color) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Soft emerald glow — top-right corner accent */
+.lop-cover::after {
+  content: '';
+  position: absolute;
+  top: -50pt;
+  right: -30pt;
+  width: 220pt;
+  height: 220pt;
+  background: radial-gradient(ellipse, var(--lop-emerald-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lop-cover__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 44pt 48pt 44pt 52pt;
+  gap: 10pt;
+  position: relative;
+  z-index: 1;
+}
+
+.lop-cover__visual {
+  width: 260pt;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28pt;
+  position: relative;
+  z-index: 1;
+}
+
+/* CTA button row */
+.lop-cover__btns {
+  display: flex;
+  flex-direction: row;
+  gap: 8pt;
+  margin-top: 6pt;
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.lop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5pt;
+  padding: 7pt 18pt;
+  border-radius: var(--lop-r-pill);
+  font-family: var(--lop-ff);
+  font-size: 9pt;
+  font-weight: 600;
+  letter-spacing: -0.1pt;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.lop-btn--primary {
+  background: var(--lop-emerald);
+  color: #ffffff;
+}
+
+.lop-btn--dark {
+  background: var(--lop-navy);
+  color: #ffffff;
+}
+
+.lop-btn--outline {
+  background: transparent;
+  border: 1.5px solid var(--lop-hairline);
+  color: var(--lop-ink);
+}
+
+.lop-btn--ghost {
+  background: var(--lop-emerald-pale);
+  color: var(--lop-emerald-dark);
+}
+
+.lop-btn--sm {
+  padding: 4.5pt 12pt;
+  font-size: 8pt;
+}
+
+/* ─── Filter Tab Bar ─────────────────────────────────────── */
+/* Matches the "전체 / 초등 / 중등 / 고등" filter row */
+.lop-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 4pt;
+  margin-bottom: 8pt;
+}
+
+.lop-filter-bar__item {
+  padding: 3pt 10pt;
+  border-radius: var(--lop-r-pill);
+  font-family: var(--lop-ff);
+  font-size: 8pt;
+  font-weight: 500;
+  color: var(--lop-ink-soft);
+  border: 1px solid var(--lop-hairline);
+  background: var(--lop-canvas-white);
+}
+
+.lop-filter-bar__item--active {
+  background: var(--lop-navy);
+  color: #ffffff;
+  border-color: var(--lop-navy);
+  font-weight: 700;
+}
+
+.lop-filter-bar__item--emerald {
+  background: var(--lop-emerald-pale);
+  color: var(--lop-emerald-dark);
+  border-color: transparent;
+}
+
+/* ─── White Panel ────────────────────────────────────────── */
+/* Dashboard panel — white card with title bar */
+.lop-panel {
+  background: var(--lop-canvas-white);
+  border: 1px solid var(--lop-hairline);
+  border-radius: var(--lop-r-xl);
+  padding: 14pt 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+  box-shadow: var(--lop-shadow-sm);
+}
+
+.lop-panel__title {
+  font-family: var(--lop-ff);
+  font-size: 9pt;
+  font-weight: 600;
+  color: var(--lop-ink);
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+}
+
+.lop-panel__icon {
+  width: 14pt;
+  height: 14pt;
+  border-radius: var(--lop-r-sm);
+  background: var(--lop-emerald-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lop-panel__badge {
+  font-family: var(--lop-ff);
+  font-size: 6.5pt;
+  font-weight: 600;
+  color: var(--lop-ink-muted);
+  margin-left: auto;
+}
+
+/* ─── Stat Card ──────────────────────────────────────────── */
+/* Individual metric callout with large number + progress bar */
+.lop-stat-card {
+  background: var(--lop-canvas-white);
+  border: 1px solid var(--lop-hairline);
+  border-radius: var(--lop-r-lg);
+  padding: 12pt 14pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+  box-shadow: var(--lop-shadow-sm);
+}
+
+.lop-stat-card__icon {
+  width: 22pt;
+  height: 22pt;
+  border-radius: var(--lop-r-sm);
+  background: var(--lop-emerald-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2pt;
+}
+
+.lop-stat-card__icon--blue   { background: var(--lop-card-blue); }
+.lop-stat-card__icon--violet { background: var(--lop-violet-pale); }
+.lop-stat-card__icon--cyan   { background: var(--lop-cyan-pale); }
+
+.lop-stat-card__number {
+  font-family: var(--lop-ff);
+  font-size: 24pt;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.5pt;
+  color: var(--lop-ink);
+}
+
+.lop-stat-card__label {
+  font-family: var(--lop-ff);
+  font-size: 7.5pt;
+  font-weight: 500;
+  color: var(--lop-ink-soft);
+}
+
+.lop-stat-card__pct {
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  color: var(--lop-ink-muted);
+}
+
+/* ─── Progress Bar ───────────────────────────────────────── */
+.lop-progress {
+  width: 100%;
+  height: 4.5pt;
+  background: var(--lop-hairline);
+  border-radius: var(--lop-r-pill);
+  overflow: hidden;
+}
+
+.lop-progress__fill {
+  height: 100%;
+  background: var(--lop-emerald);
+  border-radius: var(--lop-r-pill);
+}
+
+.lop-progress__fill--blue   { background: var(--lop-data-2); }
+.lop-progress__fill--violet { background: var(--lop-violet); }
+.lop-progress__fill--cyan   { background: var(--lop-cyan); }
+.lop-progress__fill--amber  { background: var(--lop-data-4); }
+
+/* ─── Bar Chart Row (horizontal) ─────────────────────────── */
+/* Matches the "수업 탐재 공간 출처 분포" bar chart style */
+.lop-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+}
+
+.lop-bar-row__label {
+  font-family: var(--lop-ff);
+  font-size: 8pt;
+  font-weight: 400;
+  color: var(--lop-ink);
+  width: 50pt;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lop-bar-row__track {
+  flex: 1;
+  height: 8pt;
+  background: var(--lop-hairline);
+  border-radius: var(--lop-r-pill);
+  overflow: hidden;
+}
+
+.lop-bar-row__fill {
+  height: 100%;
+  border-radius: var(--lop-r-pill);
+  background: var(--lop-data-1);
+}
+
+.lop-bar-row__pct {
+  font-family: var(--lop-ff);
+  font-size: 8pt;
+  font-weight: 600;
+  color: var(--lop-ink);
+  width: 30pt;
+  flex-shrink: 0;
+}
+
+.lop-bar-row__count {
+  font-family: var(--lop-ff);
+  font-size: 7.5pt;
+  font-weight: 400;
+  color: var(--lop-ink-muted);
+  width: 24pt;
+  flex-shrink: 0;
+}
+
+/* Bar fill color variants */
+.lop-bar-row__fill--2 { background: var(--lop-data-2); }
+.lop-bar-row__fill--3 { background: var(--lop-data-3); }
+.lop-bar-row__fill--4 { background: var(--lop-data-4); }
+.lop-bar-row__fill--5 { background: var(--lop-data-5); }
+.lop-bar-row__fill--6 { background: var(--lop-data-6); }
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.lop-card {
+  background: var(--lop-canvas-white);
+  border: 1px solid var(--lop-hairline);
+  border-radius: var(--lop-r-lg);
+  padding: 14pt 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+  box-shadow: var(--lop-shadow-sm);
+}
+
+.lop-card--surface {
+  background: var(--lop-surface);
+  border: none;
+  box-shadow: none;
+}
+
+.lop-card--elevated {
+  box-shadow: var(--lop-shadow);
+}
+
+/* Pastel feature card variants */
+.lop-card--blue   { background: var(--lop-card-blue);   border: none; box-shadow: none; }
+.lop-card--teal   { background: var(--lop-card-teal);   border: none; box-shadow: none; }
+.lop-card--yellow { background: var(--lop-card-yellow); border: none; box-shadow: none; }
+.lop-card--pink   { background: var(--lop-card-pink);   border: none; box-shadow: none; }
+.lop-card--coral  { background: var(--lop-card-coral);  border: none; box-shadow: none; }
+.lop-card--navy   {
+  background: var(--lop-navy);
+  border: none;
+  box-shadow: none;
+  color: #ffffff;
+}
+.lop-card--navy .lop-body,
+.lop-card--navy .lop-body-sm,
+.lop-card--navy .lop-body-lg { color: rgba(255,255,255,0.75); }
+.lop-card--navy .lop-card-title { color: #ffffff; }
+.lop-card--navy .lop-eyebrow { color: rgba(255,255,255,0.55); }
+
+/* Card with icon row (feature card pattern) */
+.lop-card--feature {
+  border-radius: var(--lop-r-xl);
+  padding: 16pt;
+  gap: 6pt;
+}
+
+.lop-card__icon {
+  width: 36pt;
+  height: 36pt;
+  border-radius: var(--lop-r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4pt;
+  flex-shrink: 0;
+}
+
+.lop-card__icon img {
+  width: 22pt;
+  height: 22pt;
+  object-fit: contain;
+}
+
+/* ─── Ranked List Item ───────────────────────────────────── */
+/* Matches the "참여 상위 소속 단체" numbered ranking style */
+.lop-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 9pt;
+  padding: 5.5pt 10pt;
+  background: var(--lop-canvas-white);
+  border: 1px solid var(--lop-hairline);
+  border-radius: var(--lop-r-md);
+  box-shadow: var(--lop-shadow-sm);
+}
+
+.lop-rank-item__num {
+  width: 18pt;
+  height: 18pt;
+  border-radius: 50%;
+  background: var(--lop-emerald);
+  color: #ffffff;
+  font-family: var(--lop-ff);
+  font-size: 7.5pt;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lop-rank-item__num--2 { background: var(--lop-data-2); }
+.lop-rank-item__num--3 { background: var(--lop-violet); }
+.lop-rank-item__num--4 { background: var(--lop-data-4); }
+.lop-rank-item__num--5 { background: var(--lop-ink-muted); }
+
+.lop-rank-item__icon {
+  font-size: 10pt;
+  flex-shrink: 0;
+}
+
+.lop-rank-item__text {
+  flex: 1;
+  font-family: var(--lop-ff);
+  font-size: 8.5pt;
+  font-weight: 500;
+  color: var(--lop-ink);
+}
+
+.lop-rank-item__count {
+  font-family: var(--lop-ff);
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: var(--lop-emerald);
+}
+
+/* ─── Data Table ─────────────────────────────────────────── */
+.lop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lop-table th {
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  color: var(--lop-ink-muted);
+  padding: 4pt 8pt;
+  border-bottom: 1.5px solid var(--lop-hairline);
+  text-align: left;
+  background: var(--lop-canvas-white);
+}
+
+.lop-table td {
+  font-family: var(--lop-ff);
+  font-size: 8.5pt;
+  font-weight: 400;
+  color: var(--lop-ink);
+  padding: 5.5pt 8pt;
+  border-bottom: 1px solid var(--lop-hairline-soft);
+}
+
+.lop-table tr:last-child td { border-bottom: none; }
+
+.lop-table__row--alt { background: var(--lop-surface); }
+
+/* ─── Grids ──────────────────────────────────────────────── */
+.lop-grid {
+  display: grid;
+  gap: 10pt;
+  flex: 1;
+}
+
+.lop-grid--2col  { grid-template-columns: repeat(2, 1fr); }
+.lop-grid--3col  { grid-template-columns: repeat(3, 1fr); }
+.lop-grid--4col  { grid-template-columns: repeat(4, 1fr); }
+.lop-grid--6040  { grid-template-columns: 60fr 40fr; }
+.lop-grid--4060  { grid-template-columns: 40fr 60fr; }
+.lop-grid--5050  { grid-template-columns: 1fr 1fr; }
+
+/* ─── Pills & Badges ─────────────────────────────────────── */
+.lop-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5pt 8pt;
+  border-radius: var(--lop-r-pill);
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 0.3pt;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.lop-pill--primary   { background: var(--lop-emerald);      color: #ffffff; }
+.lop-pill--dark      { background: var(--lop-navy);         color: #ffffff; }
+.lop-pill--outline   { background: transparent; border: 1px solid var(--lop-hairline); color: var(--lop-ink); }
+.lop-pill--surface   { background: var(--lop-surface);      color: var(--lop-ink); }
+.lop-pill--emerald   { background: var(--lop-emerald-pale); color: var(--lop-emerald-dark); }
+.lop-pill--violet    { background: var(--lop-violet-pale);  color: var(--lop-violet); }
+.lop-pill--cyan      { background: var(--lop-cyan-pale);    color: #0891b2; }
+.lop-pill--blue      { background: var(--lop-card-blue);    color: #1d4ed8; }
+.lop-pill--pink      { background: var(--lop-card-pink);    color: #be185d; }
+.lop-pill--amber     { background: #fef3c7;                 color: #92400e; }
+
+/* School grade badges */
+.lop-pill--elementary { background: #dcfce7; color: #166534; }
+.lop-pill--middle     { background: #dbeafe; color: #1d4ed8; }
+.lop-pill--high       { background: var(--lop-violet-pale); color: #5b21b6; }
+
+/* ─── Category Tags ──────────────────────────────────────── */
+/* Matches URL source tags: 네이버 블로그 / 인디스쿨 / 기타 */
+.lop-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2pt 7pt;
+  border-radius: var(--lop-r-sm);
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lop-tag--naver  { background: #dcfce7; color: #166534; }    /* 네이버 블로그 — green */
+.lop-tag--indie  { background: #fce7f3; color: #9d174d; }    /* 인디스쿨 — pink */
+.lop-tag--other  { background: var(--lop-surface); color: var(--lop-ink-soft); } /* 기타 */
+.lop-tag--cafe   { background: #fef3c7; color: #92400e; }    /* 카페 — amber */
+.lop-tag--tistory{ background: var(--lop-cyan-pale); color: #0891b2; } /* 티스토리 */
+
+/* ─── Insight / Takeaway Bar ─────────────────────────────── */
+.lop-insight {
+  margin-top: auto;
+  padding-top: 8pt;
+  display: flex;
+  align-items: baseline;
+  gap: 12pt;
+}
+
+.lop-insight-label {
+  font-family: var(--lop-ff);
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: var(--lop-emerald);
+}
+
+.lop-insight-text {
+  font-family: var(--lop-ff);
+  font-size: 8.5pt;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--lop-ink-soft);
+}
+
+/* ─── Section Divider Slide ──────────────────────────────── */
+.lop-divider {
+  width: 100%;
+  height: 100%;
+  padding: 44pt 52pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8pt;
+  background-color: var(--lop-canvas);
+  background-image: radial-gradient(circle, var(--lop-dot-color) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  position: relative;
+}
+
+.lop-divider--navy {
+  background-color: var(--lop-navy);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.05) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  color: #ffffff;
+}
+
+.lop-divider--emerald {
+  background-color: var(--lop-emerald);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.15) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  color: #ffffff;
+}
+
+.lop-divider--violet {
+  background-color: #2d1b69;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+  color: #ffffff;
+}
+
+/* Divider accent glow (top-right decoration) */
+.lop-divider::after {
+  content: '';
+  position: absolute;
+  top: -40pt;
+  right: -20pt;
+  width: 180pt;
+  height: 180pt;
+  background: radial-gradient(ellipse, var(--lop-emerald-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.lop-divider--navy::after   { background: radial-gradient(ellipse, rgba(16,185,129,0.15) 0%, transparent 70%); }
+.lop-divider--emerald::after{ background: radial-gradient(ellipse, rgba(255,255,255,0.20) 0%, transparent 70%); }
+.lop-divider--violet::after { background: radial-gradient(ellipse, rgba(139,92,246,0.25) 0%, transparent 70%); }
+
+.lop-divider__chapter {
+  font-family: var(--lop-ff);
+  font-size: 7.5pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2.5pt;
+  color: var(--lop-emerald);
+  position: relative;
+  z-index: 1;
+}
+.lop-divider--navy .lop-divider__chapter,
+.lop-divider--violet .lop-divider__chapter { color: rgba(255,255,255,0.55); }
+.lop-divider--emerald .lop-divider__chapter { color: rgba(255,255,255,0.70); }
+
+.lop-divider__title {
+  font-family: var(--lop-ff);
+  font-size: 38pt;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.8pt;
+  color: var(--lop-ink);
+  position: relative;
+  z-index: 1;
+}
+.lop-divider--navy .lop-divider__title,
+.lop-divider--violet .lop-divider__title,
+.lop-divider--emerald .lop-divider__title { color: #ffffff; }
+
+.lop-divider__sub {
+  font-family: var(--lop-ff);
+  font-size: 10pt;
+  font-weight: 400;
+  color: var(--lop-ink-soft);
+  margin-top: 4pt;
+  max-width: 440pt;
+  position: relative;
+  z-index: 1;
+}
+.lop-divider--navy .lop-divider__sub,
+.lop-divider--violet .lop-divider__sub,
+.lop-divider--emerald .lop-divider__sub { color: rgba(255,255,255,0.70); }
+
+/* ─── Feature Block Slide ────────────────────────────────── */
+/* Full-width pastel feature announcements (like MUNE feature row) */
+.lop-block {
+  width: 100%;
+  height: 100%;
+  padding: 36pt 48pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12pt;
+  background-color: var(--lop-canvas);
+  background-image: radial-gradient(circle, var(--lop-dot-color) 0.8pt, transparent 0.8pt);
+  background-size: var(--lop-dot-size) var(--lop-dot-size);
+}
+
+.lop-block--navy    { background-color: var(--lop-navy); background-image: radial-gradient(circle, rgba(255,255,255,0.05) 0.8pt, transparent 0.8pt); background-size: var(--lop-dot-size) var(--lop-dot-size); color: #ffffff; }
+.lop-block--emerald { background-color: var(--lop-emerald); background-image: radial-gradient(circle, rgba(255,255,255,0.15) 0.8pt, transparent 0.8pt); background-size: var(--lop-dot-size) var(--lop-dot-size); color: #ffffff; }
+.lop-block--violet  { background-color: #2d1b69; background-image: radial-gradient(circle, rgba(255,255,255,0.06) 0.8pt, transparent 0.8pt); background-size: var(--lop-dot-size) var(--lop-dot-size); color: #ffffff; }
+
+.lop-block-inner {
+  max-width: 480pt;
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+
+/* ─── Brand Strip & Slide Number ─────────────────────────── */
+.lop-brand {
+  position: absolute;
+  bottom: 13pt;
+  right: 20pt;
+  font-family: var(--lop-ff);
+  font-size: 6pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  color: var(--lop-ink-muted);
+}
+
+.lop-slide-num {
+  position: absolute;
+  bottom: 13pt;
+  left: 20pt;
+  font-family: var(--lop-ff);
+  font-size: 7pt;
+  font-weight: 400;
+  color: var(--lop-ink-muted);
+}
+
+/* ─── Thin Rule ──────────────────────────────────────────── */
+.lop-rule {
+  width: 100%;
+  height: 1px;
+  background: var(--lop-hairline);
+  margin: 4pt 0;
+}
+
+.lop-rule--emerald {
+  background: var(--lop-emerald);
+  height: 2pt;
+  width: 28pt;
+  border-radius: var(--lop-r-pill);
+}
+
+/* ─── Donut / Pie Chart Placeholder ──────────────────────── */
+/* CSS-only circle chart for quick reference (no real data) */
+.lop-donut {
+  width: 90pt;
+  height: 90pt;
+  border-radius: 50%;
+  border: 10pt solid var(--lop-hairline);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ─── List Items ─────────────────────────────────────────── */
+.lop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5pt;
+}
+
+.lop-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7pt;
+  font-family: var(--lop-ff);
+  font-size: 9pt;
+  font-weight: 400;
+  color: var(--lop-ink);
+  line-height: 1.45;
+}
+
+.lop-list__dot {
+  width: 6pt;
+  height: 6pt;
+  border-radius: 50%;
+  background: var(--lop-emerald);
+  flex-shrink: 0;
+  margin-top: 3pt;
+}
+
+.lop-list__dot--blue   { background: var(--lop-data-2); }
+.lop-list__dot--violet { background: var(--lop-violet); }
+.lop-list__dot--cyan   { background: var(--lop-cyan); }
+
+/* ─── Utility ────────────────────────────────────────────── */
+.lop-flex-col    { display: flex; flex-direction: column; gap: 6pt; }
+.lop-flex-row    { display: flex; flex-direction: row; gap: 10pt; align-items: flex-start; }
+.lop-flex-center { display: flex; align-items: center; justify-content: center; }
+.lop-flex-between{ display: flex; align-items: center; justify-content: space-between; }
+.lop-stretch     { flex: 1; }
+.lop-muted       { color: var(--lop-ink-muted); }
+.lop-soft        { color: var(--lop-ink-soft); }
+.lop-upper       { text-transform: uppercase; }
+.lop-bold        { font-weight: 700; }
+.lop-semibold    { font-weight: 600; }
+.lop-white       { color: #ffffff; }

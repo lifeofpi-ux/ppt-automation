@@ -292,7 +292,6 @@ html, body {
 .fig-insight {
   margin-top: auto;
   padding-top: 8pt;
-  border-top: 1px solid var(--fig-hairline);
   display: flex;
   align-items: baseline;
   gap: 14pt;
