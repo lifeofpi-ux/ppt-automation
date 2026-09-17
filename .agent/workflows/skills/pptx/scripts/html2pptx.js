@@ -214,9 +214,24 @@ async function extractSlideData(page) {
       return text;
     };
 
-    // Font Mapping — all fonts resolve to the Pretendard weight family
-    const mapFont = (_family, weight) => {
+    // Font Mapping — supports modern web fonts (Wanted Sans, Plus Jakarta Sans, SUIT, Inter) with fallback to Pretendard
+    const mapFont = (family, weight) => {
       const numWeight = parseInt(weight) || 400;
+      const cleanFamily = (family || '').toLowerCase().replace(/['"]/g, '');
+
+      if (cleanFamily.includes('wanted sans')) {
+        return { name: 'Wanted Sans', bold: numWeight >= 700 };
+      }
+      if (cleanFamily.includes('plus jakarta sans')) {
+        return { name: 'Plus Jakarta Sans', bold: numWeight >= 700 };
+      }
+      if (cleanFamily.includes('suit')) {
+        return { name: 'SUIT', bold: numWeight >= 700 };
+      }
+      if (cleanFamily.includes('inter')) {
+        return { name: 'Inter', bold: numWeight >= 700 };
+      }
+
       if (numWeight >= 900) return { name: 'Pretendard Black',      bold: false };
       if (numWeight >= 800) return { name: 'Pretendard ExtraBold',  bold: false };
       if (numWeight >= 700) return { name: 'Pretendard Bold',       bold: false };

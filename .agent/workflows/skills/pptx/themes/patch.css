@@ -1,0 +1,612 @@
+/*
+ * Patch Editorial — Shared PPTX Slide Theme (Yellow Edition)
+ * -------------------------------------------------------------
+ * Design Source: thepatchsystem.com (The Patch System)
+ * Aesthetic: Neo-Brutalist Electric Grid & Minimal Bold Editorial
+ * Electric royal blue canvas · 24pt grid pattern · off-white contrast cards
+ * · vibrant electric yellow CTA · soft lavender pill tags · bold monumental Pretendard.
+ *
+ * BEM prefix: .pat-*
+ *
+ * Slide canvas: 720pt × 405pt (16:9 Widescreen)
+ * Font: Pretendard Variable (100% Mandatory rule)
+ */
+
+/* Modern Geometric Web Fonts: Wanted Sans + Plus Jakarta Sans + Pretendard */
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/wanted-sans-variable.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+
+/* ─── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 720pt;
+  height: 405pt;
+  overflow: hidden;
+  background: #3555f2;
+  color: #ffffff;
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  /* ── Core Brand Colors (Slightly Deeper Modern Royal Blue) ── */
+  --pat-blue:          #3555f2;   /* Rich Medium Royal Blue — 아주 살짝 더 진하고 또렷한 로얄 블루 */
+  --pat-blue-dark:     #223ec4;   /* Deep royal blue */
+  --pat-blue-soft:     #5b76f6;   /* Lighter soft blue */
+  --pat-blue-pale:     rgba(53, 85, 242, 0.08); /* Faint blue tint */
+
+  /* ── Canvas Surfaces ── */
+  --pat-canvas-blue:   #3555f2;   /* Main medium royal blue canvas */
+  --pat-canvas-light:  #f6f8fb;   /* Ultra-clean soft off-white background */
+  --pat-canvas-white:  #ffffff;   /* Pure white card surface */
+  --pat-card-bg:       #f8fafd;   /* Soft pastel tinted white card fill */
+
+  /* ── Accent Colors (Soft Butter Lemon Yellow) ── */
+  --pat-yellow:        #fde047;   /* Soft Lemon Butter Yellow — 부드럽고 산뜻한 파스텔 옐로우 */
+  --pat-yellow-dark:   #eab308;   /* Warm golden yellow */
+  --pat-yellow-pale:   #fef9c3;   /* Pastel cream yellow */
+  
+  /* Fallback aliases for orange to yellow */
+  --pat-orange:        #fde047;
+  --pat-orange-dark:   #eab308;
+  --pat-orange-pale:   #fef9c3;
+
+  --pat-lavender:      #c4beee;   /* Soft Pastel Lavender / Periwinkle */
+  --pat-lavender-pale: #f3f1fd;
+  --pat-cyan:          #38bdf8;   /* Soft Sky Cyan accent */
+
+  /* ── Ink / Typography Colors ── */
+  --pat-white:         #ffffff;   /* Text on blue canvas */
+  --pat-ink-black:     #111111;   /* Headings on light/yellow surfaces */
+  --pat-ink-soft:      #334155;   /* Body copy on light cards */
+  --pat-ink-muted:     #64748b;   /* Captions, subtle metadata */
+
+  /* ── Grid & Borders ── */
+  --pat-border-blue:   #1f00ff;
+  --pat-border-light:  #cbd5e1;
+  --pat-border-white:  rgba(255, 255, 255, 0.35);
+  --pat-grid-blue:     rgba(255, 255, 255, 0.12); /* Grid line on blue */
+  --pat-grid-light:    rgba(31, 0, 255, 0.06);    /* Grid line on off-white */
+  --pat-grid-size:     24pt;
+
+  /* ── Radii ── */
+  --pat-r-xs:   3pt;
+  --pat-r-sm:   6pt;
+  --pat-r-md:   9pt;
+  --pat-r-lg:   14pt;
+  --pat-r-xl:   18pt;
+  --pat-r-pill: 999pt;
+
+  /* ── Font Stack ── */
+  --pat-ff: 'Wanted Sans Variable', 'Wanted Sans', 'Plus Jakarta Sans', 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+/* ─── Base Containers ─────────────────────────────────────── */
+
+/* 1. Default Electric Blue Container */
+.pat-container {
+  width: 100%;
+  height: 100%;
+  padding: 30pt 40pt 26pt;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--pat-canvas-blue);
+  background-image: 
+    linear-gradient(to right, var(--pat-grid-blue) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pat-grid-blue) 1px, transparent 1px);
+  background-size: var(--pat-grid-size) var(--pat-grid-size);
+  color: var(--pat-white);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 2. Light Off-White Container */
+.pat-container--light {
+  background-color: var(--pat-canvas-light);
+  background-image: 
+    linear-gradient(to right, var(--pat-grid-light) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pat-grid-light) 1px, transparent 1px);
+  background-size: var(--pat-grid-size) var(--pat-grid-size);
+  color: var(--pat-ink-black);
+}
+
+/* 3. Pure White Container */
+.pat-container--white {
+  background-color: #ffffff;
+  background-image: none;
+  color: var(--pat-ink-black);
+}
+
+/* ─── Typography (Enlarged Scale for High Legibility) ─────── */
+
+/* Display XL — Cover Hero Headline */
+.pat-display-xl {
+  font-family: var(--pat-ff);
+  font-size: 44pt;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.8pt;
+  text-transform: uppercase;
+  color: var(--pat-white);
+}
+.pat-container--light .pat-display-xl {
+  color: var(--pat-blue);
+}
+
+/* Display LG — Section Openers */
+.pat-display-lg {
+  font-family: var(--pat-ff);
+  font-size: 32pt;
+  font-weight: 900;
+  line-height: 1.10;
+  letter-spacing: -0.5pt;
+  text-transform: uppercase;
+  color: var(--pat-white);
+}
+.pat-container--light .pat-display-lg {
+  color: var(--pat-blue);
+}
+
+/* Headline — Slide Header */
+.pat-headline {
+  font-family: var(--pat-ff);
+  font-size: 24pt;
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: -0.4pt;
+  text-transform: uppercase;
+  color: var(--pat-white);
+}
+.pat-container--light .pat-headline {
+  color: var(--pat-blue);
+}
+
+/* Subhead */
+.pat-subhead {
+  font-family: var(--pat-ff);
+  font-size: 15pt;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Card Title */
+.pat-card-title {
+  font-family: var(--pat-ff);
+  font-size: 13pt;
+  font-weight: 900;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: var(--pat-blue);
+}
+.pat-card--blue .pat-card-title {
+  color: #ffffff;
+}
+
+/* Body Copy */
+.pat-body-lg {
+  font-family: var(--pat-ff);
+  font-size: 12pt;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+.pat-container--light .pat-body-lg {
+  color: var(--pat-ink-soft);
+}
+
+.pat-body {
+  font-family: var(--pat-ff);
+  font-size: 10.5pt;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+}
+.pat-container--light .pat-body {
+  color: var(--pat-ink-soft);
+}
+
+.pat-body-sm {
+  font-family: var(--pat-ff);
+  font-size: 9.5pt;
+  font-weight: 400;
+  line-height: 1.40;
+  color: var(--pat-ink-soft);
+}
+.pat-card--blue .pat-body-sm {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Eyebrow / Category Header */
+.pat-eyebrow {
+  font-family: var(--pat-ff);
+  font-size: 8.5pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2.5pt;
+  color: var(--pat-yellow);
+}
+.pat-eyebrow--lavender {
+  color: var(--pat-lavender);
+}
+.pat-eyebrow--white {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Big Stat Number */
+.pat-stat-number {
+  font-family: var(--pat-ff);
+  font-size: 52pt;
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -1.5pt;
+  color: var(--pat-blue);
+}
+.pat-card--blue .pat-stat-number {
+  color: var(--pat-yellow);
+}
+.pat-container .pat-stat-number--white {
+  color: #ffffff;
+}
+
+/* Color Accents */
+.pat-accent-yellow   { color: var(--pat-yellow); }
+.pat-accent-orange   { color: var(--pat-yellow); } /* alias */
+.pat-accent-blue     { color: var(--pat-blue); }
+.pat-accent-lavender { color: var(--pat-lavender); }
+
+/* ─── Header Wrapper ─────────────────────────────────────── */
+.pat-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4pt;
+  margin-bottom: 14pt;
+}
+
+/* ─── Buttons & CTA ──────────────────────────────────────── */
+.pat-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6pt;
+  padding: 9pt 22pt;
+  border-radius: var(--pat-r-sm);
+  font-family: var(--pat-ff);
+  font-size: 9.5pt;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.pat-btn--yellow,
+.pat-btn--orange {
+  background: var(--pat-yellow);
+  color: #111111;
+  border: 1px solid var(--pat-yellow);
+}
+
+.pat-btn--blue {
+  background: var(--pat-blue);
+  color: #ffffff;
+  border: 1px solid var(--pat-blue);
+}
+
+.pat-btn--outline {
+  background: transparent;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+}
+
+.pat-container--light .pat-btn--outline {
+  color: var(--pat-blue);
+  border-color: var(--pat-blue);
+}
+
+/* ─── Pills & Badges ─────────────────────────────────────── */
+.pat-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4pt 12pt;
+  border-radius: var(--pat-r-pill);
+  font-family: var(--pat-ff);
+  font-size: 8pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  white-space: nowrap;
+}
+
+.pat-pill--lavender {
+  background: var(--pat-lavender);
+  color: #111111;
+}
+
+.pat-pill--yellow,
+.pat-pill--orange {
+  background: var(--pat-yellow);
+  color: #111111;
+}
+
+.pat-pill--blue {
+  background: var(--pat-blue);
+  color: #ffffff;
+}
+
+.pat-pill--outline-white {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+.pat-pill--outline-blue {
+  background: transparent;
+  border: 1.5px solid var(--pat-blue);
+  color: var(--pat-blue);
+}
+
+/* Index / Step Number Box [01] */
+.pat-index-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26pt;
+  height: 26pt;
+  border: 1.5px solid var(--pat-blue);
+  border-radius: var(--pat-r-xs);
+  font-family: var(--pat-ff);
+  font-size: 10pt;
+  font-weight: 900;
+  color: var(--pat-blue);
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.pat-card--blue .pat-index-box {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: var(--pat-blue-dark);
+  color: #ffffff;
+}
+
+/* ─── Cards & Panels ─────────────────────────────────────── */
+/* Default Off-White Card (Signature Patch style) */
+.pat-card {
+  background: var(--pat-card-bg);
+  border: 1px solid var(--pat-blue);
+  border-radius: var(--pat-r-md);
+  padding: 14pt 16pt;
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+  color: var(--pat-ink-black);
+  position: relative;
+}
+
+/* Card Variants */
+.pat-card--white {
+  background: #ffffff;
+  border: 1px solid var(--pat-border-light);
+}
+
+.pat-card--blue {
+  background: var(--pat-blue);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+.pat-card--lavender {
+  background: var(--pat-lavender-pale);
+  border: 1px solid var(--pat-lavender);
+  color: var(--pat-ink-black);
+}
+
+.pat-card--yellow,
+.pat-card--orange {
+  background: var(--pat-yellow-pale);
+  border: 1px solid var(--pat-yellow);
+  color: var(--pat-ink-black);
+}
+
+/* ─── Grids ──────────────────────────────────────────────── */
+.pat-grid {
+  display: grid;
+  gap: 12pt;
+  flex: 1;
+}
+
+.pat-grid--2col { grid-template-columns: repeat(2, 1fr); }
+.pat-grid--3col { grid-template-columns: repeat(3, 1fr); }
+.pat-grid--4col { grid-template-columns: repeat(4, 1fr); }
+.pat-grid--5col { grid-template-columns: repeat(5, 1fr); }
+.pat-grid--5050 { grid-template-columns: 1fr 1fr; }
+.pat-grid--6040 { grid-template-columns: 3fr 2fr; }
+.pat-grid--4060 { grid-template-columns: 2fr 3fr; }
+.pat-grid--7030 { grid-template-columns: 7fr 3fr; }
+
+/* ─── Cover Slide Layout ─────────────────────────────────── */
+.pat-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--pat-canvas-blue);
+  background-image: 
+    linear-gradient(to right, var(--pat-grid-blue) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pat-grid-blue) 1px, transparent 1px);
+  background-size: var(--pat-grid-size) var(--pat-grid-size);
+  overflow: hidden;
+  position: relative;
+}
+
+.pat-cover__left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 36pt 36pt 36pt 44pt;
+  gap: 12pt;
+  z-index: 1;
+}
+
+.pat-cover__right {
+  width: 275pt;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24pt 32pt;
+  z-index: 1;
+}
+
+.pat-cover__btns {
+  display: flex;
+  align-items: center;
+  gap: 10pt;
+  margin-top: 10pt;
+}
+
+/* ─── Section Divider Slide ──────────────────────────────── */
+.pat-divider {
+  width: 100%;
+  height: 100%;
+  padding: 40pt 48pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12pt;
+  background-color: var(--pat-canvas-blue);
+  background-image: 
+    linear-gradient(to right, var(--pat-grid-blue) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pat-grid-blue) 1px, transparent 1px);
+  background-size: var(--pat-grid-size) var(--pat-grid-size);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.pat-divider--light {
+  background-color: var(--pat-canvas-light);
+  background-image: 
+    linear-gradient(to right, var(--pat-grid-light) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pat-grid-light) 1px, transparent 1px);
+  color: var(--pat-blue);
+}
+
+.pat-divider__chapter {
+  font-family: var(--pat-ff);
+  font-size: 9pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 3pt;
+  color: var(--pat-yellow);
+}
+
+.pat-divider__title {
+  font-family: var(--pat-ff);
+  font-size: 38pt;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.6pt;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.pat-divider--light .pat-divider__title {
+  color: var(--pat-blue);
+}
+
+.pat-divider__sub {
+  font-family: var(--pat-ff);
+  font-size: 11.5pt;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 460pt;
+}
+
+.pat-divider--light .pat-divider__sub {
+  color: var(--pat-ink-soft);
+}
+
+/* ─── Insight / Takeaway Bar ─────────────────────────────── */
+.pat-insight {
+  margin-top: auto;
+  padding-top: 10pt;
+  border-top: 1px dashed rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: baseline;
+  gap: 12pt;
+}
+
+.pat-container--light .pat-insight {
+  border-top-color: rgba(31, 0, 255, 0.2);
+}
+
+.pat-insight-label {
+  font-family: var(--pat-ff);
+  font-size: 8pt;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  color: var(--pat-yellow);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pat-container--light .pat-insight-label {
+  color: var(--pat-blue);
+}
+
+.pat-insight-text {
+  font-family: var(--pat-ff);
+  font-size: 9.5pt;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.35;
+}
+
+.pat-container--light .pat-insight-text {
+  color: var(--pat-ink-soft);
+}
+
+/* ─── Brand & Slide Number ───────────────────────────────── */
+.pat-brand {
+  position: absolute;
+  bottom: 11pt;
+  right: 20pt;
+  font-family: var(--pat-ff);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pat-container--light .pat-brand {
+  color: rgba(31, 0, 255, 0.40);
+}
+
+.pat-slide-num {
+  position: absolute;
+  bottom: 11pt;
+  left: 20pt;
+  font-family: var(--pat-ff);
+  font-size: 8pt;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.pat-container--light .pat-slide-num {
+  color: rgba(31, 0, 255, 0.45);
+}
+
+/* ─── Helpers & Utilities ────────────────────────────────── */
+.pat-flex-col   { display: flex; flex-direction: column; gap: 8pt; }
+.pat-flex-row   { display: flex; flex-direction: row; gap: 10pt; align-items: center; }
+.pat-stretch    { flex: 1; }
+.pat-center     { display: flex; align-items: center; justify-content: center; }
